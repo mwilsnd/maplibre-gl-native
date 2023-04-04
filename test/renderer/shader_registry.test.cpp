@@ -11,7 +11,7 @@ using namespace mbgl;
 namespace {
 
 template<uint32_t token_value>
-class StubProgramBase : public gfx::Shader {
+class StubProgramBase {
     public:
         static constexpr auto Token = token_value;
         virtual uint32_t draw() { return token; }
@@ -20,22 +20,22 @@ class StubProgramBase : public gfx::Shader {
         uint32_t token{token_value};
 };
 
-class StubProgram_1 final : public StubProgramBase<10> {
+class StubProgram_1 final :
+    public StubProgramBase<10>,
+    public gfx::ShaderBase<StubProgram_1>
+{
     public:
-        static constexpr std::string_view Name{"StubProgram_1"};
-        const std::string_view name() const noexcept override {
-            return Name;
-        }
-
+        static constexpr std::string_view Name = "StubProgram_1";
+        
         void setToken(uint32_t tok) { token = tok; }
 };
 
-class StubProgram_2 final : public StubProgramBase<20> {
+class StubProgram_2 final :
+    public StubProgramBase<20>,
+    public gfx::ShaderBase<StubProgram_2>
+{
     public:
-        static constexpr std::string_view Name{"StubProgram_2"};
-        const std::string_view name() const noexcept override {
-            return Name;
-        }
+        static constexpr std::string_view Name = "StubProgram_2";
 };
 
 class StubShaderConsumer {

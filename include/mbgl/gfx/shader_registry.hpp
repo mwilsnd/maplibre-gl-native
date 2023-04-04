@@ -59,7 +59,7 @@ class ShaderRegistry {
             typename std::enable_if_t<is_shader_v<T>, bool>* = nullptr>
         std::shared_ptr<T> get() noexcept {
             auto shader = getShader(std::string(T::Name));
-            if (!shader || (shader->name() != T::Name)) {
+            if (!shader || (shader->getTypeId() != rtti::idForType<T>())) {
                 return nullptr;
             }
             return std::static_pointer_cast<T>(shader);
