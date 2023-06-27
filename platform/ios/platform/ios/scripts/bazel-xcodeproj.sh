@@ -36,7 +36,6 @@ token="$(cat $token_file 2>/dev/null || cat $token_file2 2>/dev/null || echo $ML
 flavor="legacy" # Renderer build flavor: legacy, drawable, split
 teamid="0000000000" # Provisioning profile team ID, required for targeting physical devices
 uuid="iOS Team Provisioning Profile: *" # provisioning profile name/UUID
-release_type="release" # "release" or "debug"
 
 while [[ $# -gt 0 ]]; do
    case $1 in
@@ -60,25 +59,12 @@ while [[ $# -gt 0 ]]; do
       token="$1"
       shift
       ;;
-   --release)
-      release_type="release"
-      shift
-      ;;
-   --debug)
-      release_type="debug"
-      shift
-      ;;
    -*|--*)
       echo "Unknown option $1"
       exit 1
       ;;
    esac
 done
-
-compilation_mode="opt"
-if [ "$release_type" = "debug" ]; then
-   compilation_mode="dbg"
-fi;
 
 # Insert API Key
 echo "Inserting MapLibre API key..."
@@ -102,6 +88,6 @@ EOF
 echo "------ Building Maplibre version: $sem_version hash: $hash ------"
 
 # Generate the Xcode project
-bazel run //platform/ios:xcodeproj --@rules_xcodeproj//xcodeproj:extra_common_flags="--//:renderer=$flavor --//:maplibre_platform=ios --compilation_mode=\"$compilation_mode\""
+bazel run //platform/ios:xcodeproj --@rules_xcodeproj//xcodeproj:extra_common_flags="--//:renderer=$flavor --//:maplibre_platform=ios"
 
 popd
