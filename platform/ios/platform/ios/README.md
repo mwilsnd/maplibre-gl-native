@@ -21,39 +21,7 @@ There is a an open bounty to extend this Getting Started guide ([#809](https://g
 
 ## Developing
 
-### CMake
-
-The main build tool generator supported by MapLibre Native is CMake. There is a `Makefile` which calls CMake and `xcodebuild` under the hood to complete various development tasks, including building with various kinds of configurations and running tests. This `Makefile` can also can set up an Xcode project for MapLibre Native development by copying a `.xcodeproj` file part of the source tree and combining that with the output of CMake.
-
-To set up an Xcode project and open Xcode, use the following command.
-
-```
-make iproj
-```
-
-### Bazel
-
-The above setup is quite fragile and relies on the `.xcodeproj` files part of the source tree (making changes hard to review). We are looking into a better way to set up an Xcode project for MapLibre Native iOS development. As of May 2023 we are experimenting with [Bazel](https://bazel.build/) together with [rules_xcodeproj](https://github.com/MobileNativeFoundation/rules_xcodeproj). Please [share your experiences](https://github.com/maplibre/maplibre-native/discussions/1145).
-
-You need to install bazelisk, which is a wrapper around Bazel which ensures that the version specified in `.bazelversion` is used.
-
-```
-brew install bazelisk
-```
-
-Next, you can generate an Xcode project for MapLibre Native development using:
-
-```
-bazel run //platform/ios:xcodeproj
-```
-
-You can now open `platform/ios/MapLibre.xcodeproj` with Xcode to get started.
-
-It is also possible to build and run the test application in a simulator from the command line without opening Xcode.
-
-```
-bazel run //platform/ios:App
-```
+To get started, check out the instructions for building with [bazel](../../BAZEL.md).
 
 ## Documentation
 

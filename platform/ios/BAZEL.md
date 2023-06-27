@@ -1,36 +1,36 @@
-# Building using Bazel
+# Building for iOS
+The iOS SDK is built using bazel. To get up and running quickly, follow these steps:
 
-[Bazel](https://bazel.build) is also supported as a build option for getting a packaged release of the xcframework compiled for either static or dynamic linking.
+1. Get bazelisk, `brew install bazelisk`
+2. Open a terminal and navigate to `platform/ios/platform/ios/scrripts`
+3. Run bazel!
 
-Firstly you will have to ensure that Bazel is installed
-
-`brew install baselisk`
-
-From there you can use the script in platform/ios/platform/ios/scripts/package-bazel.sh
-
-## There are 4 options:
-
-`cd platform/ios/platform/ios/scripts`
-
-Static xcframework compiled for release (this is default if no parameters are provided):
-`./bazel-package.sh --static --release`
-
-Static xcframework compiled for debug:
-`./bazel-package.sh --static --debug`
-
-Dynamic xcframework compiled for release:
-`./bazel-package.sh --dynamic --release`
-
-Dynamic xcframework compiled for debug:
-`./bazel-package.sh --dynamic --debug`
+## Building the SDK xcframework
+`./bazel-package.sh --[static|dynamic] --[release|debug] --flavor [legacy|drawable|split] --teamid ProvisioningTeamID --profile-uuid ProvisioningProfileID`
 
 All compiled frameworks will end up in the `bazel-bin/platform/ios/` path from the root of the repo.
 
-Also you can use the link option to ensure that the framework is able to link.
+## Generating an Xcode project, running the demo app
+Run:
+`./bazel-xcodeproj.sh --[release|debug] --flavor [legacy|drawable|split] --teamid ProvisioningTeamID --profile-uuid ProvisioningProfileID [--apikey Maptiler_API_Key]`
 
-`./bazel-package.sh --link`
+`MapLibre.xcodeproj` will be created in `platform/ios`.
 
-#### Bazel build files are placed in a few places throughout the project:
+## Building for a physical device
+To run on a physical device, you'll need a mobile provisioning profile. Follow these steps:
+1. Open Xcode and ensure you are signed in with your Apple ID.
+2. Open settings, select the accounts tab.
+3. Click 'Download Manual Profiles'.
+4. Locate your provisioning profiles in `~/Library/MobileDevice/Provisioning\ Profiles`.
+5. Select a mobileprovision file and press space to open quick view.
+6. Note the UUID and team ID numbers, provide these to the project generation script (`--profile-uuid / --teamid`).
+
+## Troubleshooting
+If you have issues running bazel, the first thing you should try is cleaning the project. Run `bazel run //platform/ios:xcodeproj -- clean` and try again.
+
+# Developing
+`platform/ios/platform/ios/vendor/BUILD.bazel`
+- Covering the iOS specific dependencies.
 
 `BUILD.bazel`
 - Covering the base cpp in the root `src` directory.
@@ -44,19 +44,17 @@ Also you can use the link option to ensure that the framework is able to link.
 `platform/darwin/BUILD.bazel`
 - Covering the cpp source in platform/default.
 
-`platform/ios/platform/ios/vendor/`
-- Covering the iOS specific dependencies.
-
 `platform/ios/BUILD.bazel`
 - Covering the source in `platform/ios/platform/ios/src` and `platform/ios/platform/darwin/src` as well as defining all the other BUILD.bazel files and defining the xcframework targets.
 
-## There are also some other areas that make bazel work:
+`/bazel/core.bzl`
+- File listings for `mbgl-core`.
+
+`/bazel/flags.bzl`
+- Defines some compilation flags that are used between the different build files.
 
 `WORKSPACE`
 - Defines the "repo" and the different modules that are loaded in order to compile for Apple.
 
 `.bazelversion`
 - Defines the version of bazel used, important for specific support for Apple targets.
-
-`bazel/flags.bzl`
-- Defines some compilation flags that are used between the different build files. 
