@@ -4,6 +4,16 @@ load(
     "swift_library",
 )
 
+filegroup(
+    name = "ejs_templates",
+    visibility = ["//visibility:public"],
+    srcs = [
+        "MLNLightTest.mm.ejs",
+        "MLNStyleLayerTests.mm.ejs",
+        "MLNDocumentationGuideTests.swift",
+    ],
+)
+
 objc_library(
     name = "test_utility",
     srcs = [
