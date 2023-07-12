@@ -16,141 +16,39 @@ load("bazel/files.bzl",
     "MLN_IOS_PUBLIC_HEADERS",
     "MLN_IOS_PRIVATE_HEADERS",
     "MLN_IOS_PUBLIC_OBJC_SOURCE",
+    "MLN_IOS_PUBLIC_OBJCPP_SOURCE",
+    "MLN_PUBLIC_IOS_APP_SOPURCE",
 )
-
-_PUBLIC_HDRS = [
-    "src/MLNAnnotationContainerView.h",
-    "src/MLNAnnotationImage.h",
-    "src/MLNAnnotationView.h",
-    "src/MLNCalloutView.h",
-    "src/MLNCameraChangeReason.h",
-    "src/MLNCompactCalloutView.h",
-    "src/MLNCompassButton.h",
-    "src/MLNFaux3DUserLocationAnnotationView.h",
-    "src/MLNMapAccessibilityElement.h",
-    "src/MLNMapProjection.h",
-    "src/MLNMapView+IBAdditions.h",
-    "src/MLNMapView+Impl.h",
-    "src/MLNMapView+OpenGL.h",
-    "src/MLNMapView.h",
-    "src/MLNMapViewDelegate.h",
-    "src/MLNScaleBar.h",
-    "src/MLNUserLocation.h",
-    "src/MLNUserLocationAnnotationView.h",
-    "src/MLNUserLocationAnnotationViewStyle.h",
-    "src/MLNUserLocationHeadingArrowLayer.h",
-    "src/MLNUserLocationHeadingBeamLayer.h",
-    "src/MLNUserLocationHeadingIndicator.h",
-    "src/Mapbox.h",
-    "src/NSOrthography+MLNAdditions.h",
-    "src/UIColor+MLNAdditions.h",
-    "src/UIDevice+MLNAdditions.h",
-    "src/UIImage+MLNAdditions.h",
-    "src/UIView+MLNAdditions.h",
-    "src/UIViewController+MLNAdditions.h",
-]
-
-_PRIVATE_HDRS = [
-    "src/MLNAnnotationContainerView_Private.h",
-    "src/MLNAnnotationImage_Private.h",
-    "src/MLNAnnotationView_Private.h",
-    "src/MLNCompassButton_Private.h",
-    "src/MLNMapView_Private.h",
-    "src/MLNUserLocationAnnotationView_Private.h",
-    "src/MLNUserLocation_Private.h",
-]
-
-_OBJCPP_SRCS = [
-    "src/MLNAnnotationView.mm",
-    "src/MLNCompassButton.mm",
-    "src/MLNFaux3DUserLocationAnnotationView.mm",
-    "src/MLNMapAccessibilityElement.mm",
-    "src/MLNMapProjection.mm",
-    "src/MLNMapView.mm",
-    "src/MLNMapView+Impl.mm",
-    "src/MLNMapView+OpenGL.mm",
-    "src/MLNScaleBar.mm",
-    "src/UIColor+MLNAdditions.mm",
-    "src/UIImage+MLNAdditions.mm",
-]
-
-_OBJC_SRCS = [
-    "src/MLNAnnotationContainerView.m",
-    "src/MLNAnnotationImage.m",
-    "src/MLNCompactCalloutView.m",
-    "src/MLNUserLocation.m",
-    "src/MLNUserLocationAnnotationView.m",
-    "src/MLNUserLocationAnnotationViewStyle.m",
-    "src/MLNUserLocationHeadingArrowLayer.m",
-    "src/MLNUserLocationHeadingBeamLayer.m",
-    "src/NSOrthography+MLNAdditions.m",
-    "src/UIDevice+MLNAdditions.m",
-    "src/UIView+MLNAdditions.m",
-    "src/UIViewController+MLNAdditions.m",
-]
-
-_APP_SRCS = [
-    "app/MBXAnnotationView.m",
-    "app/MBXAppDelegate.m",
-    "app/MBXCustomCalloutView.h",
-    "app/MBXCustomCalloutView.m",
-    "app/MBXCustomLocationViewController.m",
-    "app/MBXEmbeddedMapViewController.m",
-    "app/MBXFrameTimeGraphView.m",
-    "app/MBXOfflinePacksTableViewController.m",
-    "app/MBXOrnamentsViewController.m",
-    "app/MBXSnapshotsViewController.m",
-    "app/MBXState.m",
-    "app/MBXStateManager.m",
-    "app/MBXUserLocationAnnotationView.m",
-    "app/MBXViewController.m",
-    "app/main.m",
-
-    "app/MBXAnnotationView.h",
-    "app/MBXAppDelegate.h",
-    "app/MBXCustomLocationViewController.h",
-    "app/MBXEmbeddedMapViewController.h",
-    "app/MBXFrameTimeGraphView.h",
-    "app/MBXOfflinePacksTableViewController.h",
-    "app/MBXOrnamentsViewController.h",
-    "app/MBXSnapshotsViewController.h",
-    "app/MBXState.h",
-    "app/MBXStateManager.h",
-    "app/MBXUserLocationAnnotationView.h",
-    "app/MBXViewController.h",
-    "app/MLNMapView_Experimental.h",
-]
 
 filegroup(
     name = "ios_public_hdrs",
     visibility = ["//visibility:public"],
-    srcs = _PUBLIC_HDRS,
+    srcs = MLN_IOS_PUBLIC_HEADERS,
 )
 
 filegroup(
     name = "ios_private_hdrs",
     visibility = ["//visibility:public"],
-    srcs = _PRIVATE_HDRS,
+    srcs = MLN_IOS_PRIVATE_HEADERS,
 )
 
 filegroup(
     name = "ios_objcpp_srcs",
     visibility = ["//visibility:public"],
-    srcs = _OBJCPP_SRCS,
+    srcs = MLN_IOS_PUBLIC_OBJCPP_SOURCE,
 )
 
 filegroup(
     name = "ios_objc_srcs",
     visibility = ["//visibility:public"],
-    srcs = _OBJC_SRCS,
+    srcs = MLN_IOS_PUBLIC_OBJC_SOURCE,
 )
 
 filegroup(
     name = "ios_app_srcs",
     visibility = ["//visibility:public"],
-    srcs = _APP_SRCS,
+    srcs = MLN_PUBLIC_IOS_APP_SOPURCE,
 )
-
 
 apple_static_xcframework(
     name = "Mapbox.static",
@@ -163,7 +61,10 @@ apple_static_xcframework(
         "device": ["arm64"],
     },
     minimum_os_versions = {"ios": "12.0"},
-    public_hdrs = MLN_IOS_PUBLIC_SOURCE,
+    public_hdrs = [
+        ":ios_public_hdrs",
+        "//platform/darwin:darwin_public_hdrs"
+    ],
     umbrella_header = "src/Mapbox.h",
     visibility = ["//visibility:public"],
     deps = ["//platform:ios-sdk"],
@@ -198,7 +99,10 @@ apple_xcframework(
         "device": ["arm64"],
     },
     minimum_os_versions = {"ios": "12.0"},
-    public_hdrs = MLN_IOS_PUBLIC_SOURCE,
+    public_hdrs = [
+        ":ios_public_hdrs",
+        "//platform/darwin:darwin_public_hdrs"
+    ],
     umbrella_header = "src/Mapbox.h",
     visibility = ["//visibility:public"],
     deps = ["//platform:ios-sdk-dynamic"],
@@ -340,9 +244,9 @@ xcodeproj(
 )
 
 
-exports_files(_PUBLIC_HDRS
-    + _PRIVATE_HDRS
-    + _OBJCPP_SRCS
-    + _OBJC_SRCS
-    + _APP_SRCS
+exports_files(MLN_IOS_PUBLIC_HEADERS
+    + MLN_IOS_PRIVATE_HEADERS
+    + MLN_IOS_PUBLIC_OBJCPP_SOURCE
+    + MLN_IOS_PUBLIC_OBJC_SOURCE
+    + MLN_PUBLIC_IOS_APP_SOPURCE
 )
