@@ -252,7 +252,7 @@ ios_application(
     ],
     infoplists = ["build/Info-app.plist"],
     minimum_os_version = "12.0",
-    #provisioning_profile = "xcode_profile",
+    provisioning_profile = "xcode_profile",
     resources = _IOS_APPLICATION_RESOURCES,
     visibility = ["//visibility:public"],
     deps = [
@@ -274,7 +274,7 @@ ios_application(
     minimum_os_version = "12.0",
     resources = _IOS_APPLICATION_RESOURCES,
     visibility = ["//visibility:public"],
-    #provisioning_profile = ":xcode_profile",
+    provisioning_profile = ":xcode_profile",
     deps = [
         "//platform:iosapp",
     ],
