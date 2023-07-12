@@ -13,6 +13,211 @@ load(
     "@build_bazel_rules_swift//swift:swift.bzl",
     "swift_library",
 )
+load("//bazel:macros.bzl", "appendList")
+
+filegroup(
+    name = "darwin_private_hdrs",
+    srcs = [
+        "src/MLNAttributionInfo_Private.h",
+        "src/MLNComputedShapeSource_Private.h",
+        "src/MLNFeature_Private.h",
+        "src/MLNFoundation_Private.h",
+        "src/MLNGeometry_Private.h",
+        "src/MLNLight_Private.h",
+        "src/MLNLocationManager_Private.h",
+        "src/MLNLoggingConfiguration_Private.h",
+        "src/MLNMapSnapshotter_Private.h",
+        "src/MLNMultiPoint_Private.h",
+        "src/MLNNetworkConfiguration_Private.h",
+        "src/MLNOfflinePack_Private.h",
+        "src/MLNOfflineRegion_Private.h",
+        "src/MLNOfflineStorage_Private.h",
+        "src/MLNOpenGLStyleLayer_Private.h",
+        "src/MLNPointCollection_Private.h",
+        "src/MLNPolygon_Private.h",
+        "src/MLNPolyline_Private.h",
+        "src/MLNRasterTileSource_Private.h",
+        "src/MLNSettings_Private.h",
+        "src/MLNShapeOfflineRegion_Private.h",
+        "src/MLNShapeSource_Private.h",
+        "src/MLNShape_Private.h",
+        "src/MLNSource_Private.h",
+        "src/MLNStyleLayer_Private.h",
+        "src/MLNStyleValue_Private.h",
+        "src/MLNStyle_Private.h",
+        "src/MLNTilePyramidOfflineRegion_Private.h",
+        "src/MLNTileSource_Private.h",
+        "src/MLNVectorTileSource_Private.h",
+        "src/NSExpression+MLNPrivateAdditions.h",
+        "src/NSPredicate+MLNPrivateAdditions.h",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name = "darwin_public_hdrs",
+    srcs = [
+        "src/MLNAnnotation.h",
+        "src/MLNAttributedExpression.h",
+        "src/MLNAttributionInfo.h",
+        "src/MLNClockDirectionFormatter.h",
+        "src/MLNCluster.h",
+        "src/MLNCompassDirectionFormatter.h",
+        "src/MLNComputedShapeSource.h",
+        "src/MLNConversion.h",
+        "src/MLNCoordinateFormatter.h",
+        "src/MLNDefaultStyle.h",
+        "src/MLNDistanceFormatter.h",
+        "src/MLNFeature.h",
+        "src/MLNForegroundStyleLayer.h",
+        "src/MLNFoundation.h",
+        "src/MLNGeometry.h",
+        "src/MLNImageSource.h",
+        "src/MLNLocationManager.h",
+        "src/MLNLoggingConfiguration.h",
+        "src/MLNMapCamera.h",
+        "src/MLNMapSnapshotter.h",
+        "src/MLNMultiPoint.h",
+        "src/MLNNetworkConfiguration.h",
+        "src/MLNOfflinePack.h",
+        "src/MLNOfflineRegion.h",
+        "src/MLNOfflineStorage.h",
+        "src/MLNOpenGLStyleLayer.h",
+        "src/MLNOverlay.h",
+        "src/MLNPointAnnotation.h",
+        "src/MLNPointCollection.h",
+        "src/MLNPolygon.h",
+        "src/MLNPolyline.h",
+        "src/MLNRasterDEMSource.h",
+        "src/MLNRasterTileSource.h",
+        "src/MLNReachability.h",
+        "src/MLNRendererConfiguration.h",
+        "src/MLNRendererFrontend.h",
+        "src/MLNSettings.h",
+        "src/MLNShape.h",
+        "src/MLNShapeCollection.h",
+        "src/MLNShapeOfflineRegion.h",
+        "src/MLNShapeSource.h",
+        "src/MLNSource.h",
+        "src/MLNStyle.h",
+        "src/MLNStyleLayer.h",
+        "src/MLNStyleLayerManager.h",
+        "src/MLNStyleValue.h",
+        "src/MLNTilePyramidOfflineRegion.h",
+        "src/MLNTileServerOptions.h",
+        "src/MLNTileSource.h",
+        "src/MLNTypes.h",
+        "src/MLNValueEvaluator.h",
+        "src/MLNVectorStyleLayer.h",
+        "src/MLNVectorTileSource.h",
+        "src/NSArray+MLNAdditions.h",
+        "src/NSBundle+MLNAdditions.h",
+        "src/NSCoder+MLNAdditions.h",
+        "src/NSComparisonPredicate+MLNAdditions.h",
+        "src/NSCompoundPredicate+MLNAdditions.h",
+        "src/NSDate+MLNAdditions.h",
+        "src/NSDictionary+MLNAdditions.h",
+        "src/NSException+MLNAdditions.h",
+        "src/NSExpression+MLNAdditions.h",
+        "src/NSPredicate+MLNAdditions.h",
+        "src/NSString+MLNAdditions.h",
+        "src/NSURL+MLNAdditions.h",
+        "src/NSValue+MLNAdditions.h",
+        "src/NSValue+MLNStyleAttributeAdditions.h",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name = "darwin_objcpp_srcs",
+    srcs = [
+        "src/MLNAttributionInfo.mm",
+        "src/MLNComputedShapeSource.mm",
+        "src/MLNDefaultStyle.mm",
+        "src/MLNFeature.mm",
+        "src/MLNForegroundStyleLayer.mm",
+        "src/MLNFoundation.mm",
+        "src/MLNGeometry.mm",
+        "src/MLNImageSource.mm",
+        "src/MLNLoggingConfiguration.mm",
+        "src/MLNMapCamera.mm",
+        "src/MLNMapSnapshotter.mm",
+        "src/MLNMultiPoint.mm",
+        "src/MLNNetworkConfiguration.mm",
+        "src/MLNOfflinePack.mm",
+        "src/MLNOfflineStorage.mm",
+        "src/MLNOpenGLStyleLayer.mm",
+        "src/MLNPointAnnotation.mm",
+        "src/MLNPointCollection.mm",
+        "src/MLNPolygon.mm",
+        "src/MLNPolyline.mm",
+        "src/MLNRasterDEMSource.mm",
+        "src/MLNRasterTileSource.mm",
+        "src/MLNSettings.mm",
+        "src/MLNShape.mm",
+        "src/MLNShapeCollection.mm",
+        "src/MLNShapeOfflineRegion.mm",
+        "src/MLNShapeSource.mm",
+        "src/MLNSource.mm",
+        "src/MLNStyle.mm",
+        "src/MLNStyleLayer.mm",
+        "src/MLNStyleLayerManager.mm",
+        "src/MLNStyleValue.mm",
+        "src/MLNTilePyramidOfflineRegion.mm",
+        "src/MLNTileServerOptions.mm",
+        "src/MLNTileSource.mm",
+        "src/MLNVectorStyleLayer.mm",
+        "src/MLNVectorTileSource.mm",
+        "src/NSArray+MLNAdditions.mm",
+        "src/NSBundle+MLNAdditions.mm",
+        "src/NSCoder+MLNAdditions.mm",
+        "src/NSComparisonPredicate+MLNAdditions.mm",
+        "src/NSCompoundPredicate+MLNAdditions.mm",
+        "src/NSDate+MLNAdditions.mm",
+        "src/NSDictionary+MLNAdditions.mm",
+        "src/NSExpression+MLNAdditions.mm",
+        "src/NSPredicate+MLNAdditions.mm",
+        "src/NSValue+MLNStyleAttributeAdditions.mm",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name = "darwin_objc_srcs",
+    srcs = [
+        "src/MLNAttributedExpression.m",
+        "src/MLNClockDirectionFormatter.m",
+        "src/MLNCompassDirectionFormatter.m",
+        "src/MLNCoordinateFormatter.m",
+        "src/MLNDistanceFormatter.m",
+        "src/MLNLocationManager.m",
+        "src/MLNReachability.m",
+        "src/MLNRendererConfiguration.m",
+        "src/MLNTypes.m",
+        "src/NSString+MLNAdditions.m",
+        "src/NSURL+MLNAdditions.m",
+        "src/NSValue+MLNAdditions.m",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name = "generated_style_srcs",
+    srcs = appendList(MLN_GENERATED_DARWIN_STYLE_SOURCE, ":"),
+    visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name = "generated_style_hdrs",
+    srcs = appendList(MLN_GENERATED_DARWIN_STYLE_HEADERS, ":"),
+    visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name = "generated_test_srcs",
+    srcs = appendList(MLN_GENERATED_DARWIN_TEST_CODE, ":"),
+    visibility = ["//visibility:public"],
+)
 
 filegroup(
     name = "test_ejs_templates",
@@ -21,6 +226,7 @@ filegroup(
         "test/MLNStyleLayerTests.mm.ejs",
         "test/MLNDocumentationGuideTests.swift",
     ],
+    visibility = ["//visibility:public"],
 )
 
 filegroup(
@@ -30,6 +236,31 @@ filegroup(
         "docs/guides/Migrating_to_Expressions.md.ejs",
         "docs/guides/Tile_URL_Templates.md.ejs",
     ],
+    visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name = "generator_data",
+    srcs = [
+        "src/MLNLight.h.ejs",
+        "src/MLNLight.mm.ejs",
+        "src/MLNStyleLayer_Private.h.ejs",
+        "src/MLNStyleLayer.h.ejs",
+        "src/MLNStyleLayer.mm.ejs",
+    ]
+)
+
+genrule(
+    name = "generated_code",
+    cmd = "node $(execpath scripts/generate-style-code.js) --root $(RULEDIR)/../../",
+    tools = ["scripts/generate-style-code.js"],
+    srcs = [
+        ":generator_data",
+        ":test_ejs_templates",
+        ":docs_ejs_templates",
+    ],
+    outs = MLN_GENERATED_DARWIN_STYLE_SOURCE + MLN_GENERATED_DARWIN_STYLE_HEADERS + MLN_GENERATED_DARWIN_TEST_CODE,
+    visibility = ["//visibility:public"],
 )
 
 objc_library(
@@ -113,30 +344,20 @@ swift_library(
     ],
 )
 
-filegroup(
-    name = "generator_data",
+cc_library(
+    name = "darwin-generated-style-artifacts",
     srcs = [
-        "src/MLNLight.h.ejs",
-        "src/MLNLight.mm.ejs",
-        "src/MLNStyleLayer_Private.h.ejs",
-        "src/MLNStyleLayer.h.ejs",
-        "src/MLNStyleLayer.mm.ejs",
-    ]
-)
-
-genrule(
-    name = "generated_code",
-    cmd = "node $(execpath scripts/generate-style-code.js) --root $(RULEDIR)/../../",
-    tools = ["scripts/generate-style-code.js"],
-    srcs = [
-        ":generator_data",
-        ":test_ejs_templates",
-        ":docs_ejs_templates",
+        ":darwin_private_hdrs",
+        ":darwin_public_hdrs",
+        ":generated_style_hdrs",
     ],
-    outs = MLN_GENERATED_DARWIN_TEST_CODE
-        + MLN_GENERATED_DARWIN_STYLE_SOURCE
-        + MLN_GENERATED_DARWIN_STYLE_HEADERS,
+    hdrs = [
+        ":generated_style_hdrs",
+    ],
     visibility = ["//visibility:public"],
+    deps = [
+        ":generated_code",
+    ],
 )
 
 # Objc files for the iOS source
@@ -153,10 +374,11 @@ objc_library(
     copts = WARNING_FLAGS["ios"] + MAPLIBRE_FLAGS + [
         "-fmodules",
     ],
+    defines = ["GLES_SILENCE_DEPRECATION=1", "GL_SILENCE_DEPRECATION=1"],
     includes = [
         "include",
     ],
-    visibility = ["//platform/ios:__pkg__"],
+    visibility = ["//visibility:public"],
     deps = [
         "//:mbgl-core",
         "//platform/default:mbgl-default",
@@ -196,7 +418,7 @@ objc_library(
         "CoreText",
         "ImageIO",
     ],
-    visibility = ["//platform/ios:__pkg__"],
+    visibility = ["//visibility:public"],
     deps = [
         "//:mbgl-core",
         "//platform/default:mbgl-default",
@@ -213,11 +435,12 @@ objc_library(
         "src/timer.cpp",
     ],
     copts = CPP_FLAGS + MAPLIBRE_FLAGS,
+    defines = ["GLES_SILENCE_DEPRECATION=1", "GL_SILENCE_DEPRECATION=1"],
     sdk_frameworks = [
         "OpenGLES",
         "SystemConfiguration",
     ],
-    visibility = ["//platform/default:__pkg__"],
+    visibility = ["//visibility:public"],
     deps = [
         "//:mbgl-core",
     ],

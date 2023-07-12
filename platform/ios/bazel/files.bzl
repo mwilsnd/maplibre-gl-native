@@ -154,7 +154,6 @@ MLN_IOS_PUBLIC_HEADERS = [
     "src/MLNUserLocationHeadingIndicator.h",
     "src/Mapbox.h",
     "src/NSOrthography+MLNAdditions.h",
-    "src/NSOrthography+MLNAdditions.m",
     "src/UIColor+MLNAdditions.h",
     "src/UIDevice+MLNAdditions.h",
     "src/UIImage+MLNAdditions.h",
@@ -207,7 +206,7 @@ MLN_IOS_PRIVATE_HEADERS = [
     "src/MLNUserLocation_Private.h",
 ]
 
-MLN_PUBLIC_OBJC_SOURCE = [
+MLN_IOS_PUBLIC_OBJC_SOURCE = [
     "//platform/darwin:src/MLNAttributedExpression.m",
     "//platform/darwin:src/MLNClockDirectionFormatter.m",
     "//platform/darwin:src/MLNCompassDirectionFormatter.m",
