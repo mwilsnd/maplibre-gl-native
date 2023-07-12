@@ -37,7 +37,6 @@ process.on('exit', function() {
 
 global.writeIfModified = function(filename, newContent, output) {
   if (output) {
-    console.log("!!", output);
     filename = path.resolve(path.join(output, filename));
   }
 
