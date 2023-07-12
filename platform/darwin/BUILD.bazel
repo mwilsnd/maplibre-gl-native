@@ -298,7 +298,7 @@ objc_library(
     ],
     deps = [
         "test_utility",
-        "//platform/ios:sdk",
+        "//platform:ios-sdk",
     ],
 )
 
@@ -319,7 +319,7 @@ objc_library(
         "//platform/ios/test:__pkg__",
     ],
     deps = [
-        "//platform/ios:sdk",
+        "//platform:ios-sdk",
     ],
 )
 
@@ -340,7 +340,7 @@ swift_library(
         "//platform/ios/test:__pkg__",
     ],
     deps = [
-        "//platform/ios:sdk",
+        "//platform:ios-sdk",
     ],
 )
 

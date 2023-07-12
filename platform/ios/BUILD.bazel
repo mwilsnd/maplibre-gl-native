@@ -328,15 +328,15 @@ xcodeproj(
                 "device",
             ],
         ),
-        #top_level_target(
-        #    "//render-test/ios:RenderTest",
-        #    target_environments = [
-        #        "simulator",
-        #        "device",
-        #    ],
-        #),
-       # "//platform/ios/test:ios_test",
-       # "//platform/ios/iosapp-UITests:uitest",
+        top_level_target(
+            "//render-test/ios:RenderTest",
+            target_environments = [
+                "simulator",
+                "device",
+            ],
+        ),
+        "//platform/ios/test:ios_test",
+        "//platform/ios/iosapp-UITests:uitest",
     ],
 )
 
