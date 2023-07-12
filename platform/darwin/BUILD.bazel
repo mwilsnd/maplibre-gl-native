@@ -268,7 +268,7 @@ objc_library(
     srcs = [
         "test/MLNTestUtility.h",
     ],
-    includes = ["."],
+    includes = ["test"],
     visibility = [
         "//platform/ios/test:__pkg__",
     ],
