@@ -232,7 +232,3 @@ MLN_IOS_PUBLIC_OBJC_SOURCE = [
     "src/UIView+MLNAdditions.m",
     "src/UIViewController+MLNAdditions.m",
 ]
-
-MLN_DARWIN_INCLUDES = [
-    "//platform/darwin:include/mbgl/util/image+MLNAdditions.hpp",
-]

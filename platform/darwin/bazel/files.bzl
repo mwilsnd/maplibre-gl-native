@@ -46,10 +46,6 @@ MLN_GENERATED_DARWIN_TEST_CODE = [
     "test/MLNSymbolStyleLayerTests.mm", 
 ]
 
-MLN_DARWIN_INCLUDES = [
-    "include/mbgl/util/image+MLNAdditions.hpp",
-]
-
 MLN_DARWIN_PUBLIC_HEADERS = [
     "src/MLNAnnotation.h",
     "src/MLNAttributedExpression.h",
