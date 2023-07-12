@@ -100,6 +100,7 @@ git checkout ${VERSION_TAG}
 npm install --ignore-scripts
 mkdir -p ${BINARY_DIRECTORY}
 
+# TODO: DEAD: Use bazel
 step "Building: make xcframework"
 make xcframework
 
