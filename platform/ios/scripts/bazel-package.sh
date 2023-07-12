@@ -68,7 +68,7 @@ if [ "$release_type" = "debug" ]; then
    compilation_mode="dbg"
 fi;
 
-pushd ../../../../../
+pushd ../../../
 
 echo "------ Determining Maplibre version and hash ------"
 

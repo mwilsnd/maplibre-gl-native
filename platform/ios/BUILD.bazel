@@ -12,39 +12,11 @@ load(
 load("bazel/macros.bzl", "info_plist")
 load("bazel/config.bzl", "APPLE_MOBILE_PROVISIONING_PROFILE_TEAM_ID")
 load("bazel/files.bzl",
-    "MLN_GENERATED_STYLE_SOURCE",
-    "MLN_GENERATED_STYLE_HEADERS",
-    "MLN_GENERATED_TEST_CODE",
     "MLN_IOS_PUBLIC_SOURCE",
     "MLN_IOS_PUBLIC_HEADERS",
     "MLN_IOS_PRIVATE_HEADERS",
     "MLN_PUBLIC_OBJC_SOURCE",
     "MLN_DARWIN_INCLUDES",
-)
-
-filegroup(
-    name = "ios_generated_data",
-    srcs = [
-        "platform/darwin/src/MLNLight.h.ejs",
-        "platform/darwin/src/MLNLight.mm.ejs",
-        "platform/darwin/src/MLNStyleLayer_Private.h.ejs",
-        "platform/darwin/src/MLNStyleLayer.h.ejs",
-        "platform/darwin/src/MLNStyleLayer.mm.ejs",
-    ]
-)
-
-genrule(
-    name = "generated_ios_code",
-    cmd = "node $(execpath platform/darwin/scripts/generate-style-code.js) --root $(RULEDIR)",
-    tools = ["platform/darwin/scripts/generate-style-code.js"],
-    srcs = [
-        "ios_generated_data",
-        "//platform/ios/platform/darwin/test:ejs_templates",
-        "//platform/ios/platform/darwin/docs:ejs_templates",
-    ],
-    outs = MLN_GENERATED_TEST_CODE
-        + MLN_GENERATED_STYLE_SOURCE
-        + MLN_GENERATED_STYLE_HEADERS
 )
 
 apple_static_xcframework(
@@ -59,7 +31,7 @@ apple_static_xcframework(
     },
     minimum_os_versions = {"ios": "12.0"},
     public_hdrs = MLN_IOS_PUBLIC_SOURCE,
-    umbrella_header = "platform/ios/src/Mapbox.h",
+    umbrella_header = "src/Mapbox.h",
     visibility = ["//visibility:public"],
     deps = ["sdk"],
 )
@@ -67,13 +39,13 @@ apple_static_xcframework(
 info_plist(
     name = "info_plist",
     out = "Info.plist",
-    base_info_plist = "platform/ios/framework/Info.plist",
+    base_info_plist = "framework/Info.plist",
 )
 
 info_plist(
     name = "info_static_plist",
     out = "Info-static.plist",
-    base_info_plist = "platform/ios/framework/Info-static.plist",
+    base_info_plist = "framework/Info-static.plist",
 )
 
 apple_xcframework(
@@ -81,8 +53,8 @@ apple_xcframework(
     bundle_id = "com.maplibre.mapbox",
     bundle_name = "Mapbox",
     data = glob([
-        "platform/ios/resources/*.lproj/**",
-        "platform/ios/resources/*.xcassets/**",
+        "resources/*.lproj/**",
+        "resources/*.xcassets/**",
     ]),
     infoplists = ["info_plist"],
     ios = {
@@ -94,7 +66,7 @@ apple_xcframework(
     },
     minimum_os_versions = {"ios": "12.0"},
     public_hdrs = MLN_IOS_PUBLIC_SOURCE,
-    umbrella_header = "platform/ios/src/Mapbox.h",
+    umbrella_header = "src/Mapbox.h",
     visibility = ["//visibility:public"],
     deps = ["sdk-dynamic"],
 )
@@ -159,15 +131,15 @@ apple_resource_bundle(
     bundle_name = "Mapbox",
     infoplists = ["info_static_plist"],
     resources = glob([
-        "platform/ios/resources/*.lproj/**",
-        "platform/ios/resources/*.xcassets/**",
+        "resources/*.lproj/**",
+        "resources/*.xcassets/**",
     ]),
 )
 
 # Objcpp files for the iOS source
 objc_library(
     name = "objcpp-sdk",
-    srcs = MLN_IOS_PUBLIC_SOURCE + MLN_GENERATED_STYLE_SOURCE,
+    srcs = MLN_IOS_PUBLIC_SOURCE + ["//platform/darwin:generated_code"],
     copts = CPP_FLAGS + MAPLIBRE_FLAGS + [
         "-fcxx-modules",
         "-fmodules",
@@ -190,7 +162,7 @@ objc_library(
         "//:mbgl-core",
         "//platform/darwin:darwin-objcpp",
         "//platform/default:mbgl-default",
-        "//platform/ios/platform/ios/vendor:SMCalloutView",
+        "//platform/ios/vendor:SMCalloutView",
     ],
 )
 
@@ -207,20 +179,19 @@ objc_library(
         "-Wno-gnu-conditional-omitted-operand",
     ],
     deps = [
-        "generated_ios_code",
         "objc-headers",
         "//:mbgl-core",
         "//platform/darwin:darwin-objc",
         "//platform/default:mbgl-default",
-        "//platform/ios/platform/ios/vendor:SMCalloutView",
+        "//platform/ios/vendor:SMCalloutView",
     ],
 )
 
 # Common headers between objc and objcpp libraries.
 objc_library(
     name = "objc-headers",
-    srcs = MLN_IOS_PUBLIC_HEADERS + MLN_IOS_PRIVATE_HEADERS + MLN_GENERATED_STYLE_HEADERS,
-    hdrs = MLN_IOS_PUBLIC_HEADERS + MLN_IOS_PRIVATE_HEADERS + MLN_GENERATED_STYLE_HEADERS,
+    srcs = MLN_IOS_PUBLIC_HEADERS + MLN_IOS_PRIVATE_HEADERS + ["//platform/darwin:generated_code"],
+    hdrs = MLN_IOS_PUBLIC_HEADERS + MLN_IOS_PRIVATE_HEADERS + ["//platform/darwin:generated_code"],
     sdk_frameworks = [
         "CoreGraphics",
         "CoreLocation",
@@ -241,42 +212,42 @@ objc_library(
     name = "iosapp",
     defines = ["GLES_SILENCE_DEPRECATION"],
     srcs = [
-        "platform/darwin/app/LimeGreenStyleLayer.h",
-        "platform/darwin/app/LimeGreenStyleLayer.m",
-        "platform/ios/app/MBXAnnotationView.m",
-        "platform/ios/app/MBXAppDelegate.m",
-        "platform/ios/app/MBXCustomCalloutView.h",
-        "platform/ios/app/MBXCustomCalloutView.m",
-        "platform/ios/app/MBXCustomLocationViewController.m",
-        "platform/ios/app/MBXEmbeddedMapViewController.m",
-        "platform/ios/app/MBXFrameTimeGraphView.m",
-        "platform/ios/app/MBXOfflinePacksTableViewController.m",
-        "platform/ios/app/MBXOrnamentsViewController.m",
-        "platform/ios/app/MBXSnapshotsViewController.m",
-        "platform/ios/app/MBXState.m",
-        "platform/ios/app/MBXStateManager.m",
-        "platform/ios/app/MBXUserLocationAnnotationView.m",
-        "platform/ios/app/MBXViewController.m",
-        "platform/ios/app/main.m",
+        "//platform/darwin:app/LimeGreenStyleLayer.h",
+        "//platform/darwin:app/LimeGreenStyleLayer.m",
+        "app/MBXAnnotationView.m",
+        "app/MBXAppDelegate.m",
+        "app/MBXCustomCalloutView.h",
+        "app/MBXCustomCalloutView.m",
+        "app/MBXCustomLocationViewController.m",
+        "app/MBXEmbeddedMapViewController.m",
+        "app/MBXFrameTimeGraphView.m",
+        "app/MBXOfflinePacksTableViewController.m",
+        "app/MBXOrnamentsViewController.m",
+        "app/MBXSnapshotsViewController.m",
+        "app/MBXState.m",
+        "app/MBXStateManager.m",
+        "app/MBXUserLocationAnnotationView.m",
+        "app/MBXViewController.m",
+        "app/main.m",
     ],
     hdrs = [
-        "platform/ios/app/MBXAnnotationView.h",
-        "platform/ios/app/MBXAppDelegate.h",
-        "platform/ios/app/MBXCustomLocationViewController.h",
-        "platform/ios/app/MBXEmbeddedMapViewController.h",
-        "platform/ios/app/MBXFrameTimeGraphView.h",
-        "platform/ios/app/MBXOfflinePacksTableViewController.h",
-        "platform/ios/app/MBXOrnamentsViewController.h",
-        "platform/ios/app/MBXSnapshotsViewController.h",
-        "platform/ios/app/MBXState.h",
-        "platform/ios/app/MBXStateManager.h",
-        "platform/ios/app/MBXUserLocationAnnotationView.h",
-        "platform/ios/app/MBXViewController.h",
-        "platform/ios/app/MLNMapView_Experimental.h",
+        "app/MBXAnnotationView.h",
+        "app/MBXAppDelegate.h",
+        "app/MBXCustomLocationViewController.h",
+        "app/MBXEmbeddedMapViewController.h",
+        "app/MBXFrameTimeGraphView.h",
+        "app/MBXOfflinePacksTableViewController.h",
+        "app/MBXOrnamentsViewController.h",
+        "app/MBXSnapshotsViewController.h",
+        "app/MBXState.h",
+        "app/MBXStateManager.h",
+        "app/MBXUserLocationAnnotationView.h",
+        "app/MBXViewController.h",
+        "app/MLNMapView_Experimental.h",
         "platform/darwin/app/LimeGreenStyleLayer.h",
-    ] + MLN_IOS_PUBLIC_HEADERS + MLN_IOS_PRIVATE_HEADERS + MLN_GENERATED_STYLE_HEADERS,
+    ] + MLN_IOS_PUBLIC_HEADERS + MLN_IOS_PRIVATE_HEADERS + ["//platform/darwin:generated_code"],
     data = glob([
-        "platform/ios/app/Assets.xcassets/**",
+        "app/Assets.xcassets/**",
     ]),
     sdk_frameworks = [
         "GLKit",  # needed for LimeGreenStyleLayer
@@ -287,19 +258,19 @@ objc_library(
 )
 
 _IOS_APPLICATION_RESOURCES = [
-    "platform/ios/app/numeric_filter_style.json",
-    "platform/ios/app/missing_icon.json",
-    "platform/ios/app/points.geojson",
-    "platform/ios/app/polyline.geojson",
-    "platform/ios/app/Settings.bundle",
-    "platform/ios/app/Main.storyboard",
-    "platform/ios/app/threestates.geojson",
-    "platform/ios/app/LaunchScreen.storyboard",
-    "platform/ios/app/simple_route.json",
-    "platform/ios/app/fill_filter_style.json",
-    "//platform/ios/platform/darwin/test:amsterdam.geojson",
+    "app/numeric_filter_style.json",
+    "app/missing_icon.json",
+    "app/points.geojson",
+    "app/polyline.geojson",
+    "app/Settings.bundle",
+    "app/Main.storyboard",
+    "app/threestates.geojson",
+    "app/LaunchScreen.storyboard",
+    "app/simple_route.json",
+    "app/fill_filter_style.json",
+    "//platform/darwin/test:amsterdam.geojson",
 ] + glob([
-    "platform/ios/app/*.lproj/**",
+    "app/*.lproj/**",
 ])
 
 ios_application(
@@ -330,7 +301,7 @@ ios_application(
     frameworks = [
         "MapLibre.link",
     ],
-    infoplists = ["platform/ios/app/Info.plist"],
+    infoplists = ["app/Info.plist"],
     minimum_os_version = "12.0",
     resources = _IOS_APPLICATION_RESOURCES,
     visibility = ["//visibility:public"],
@@ -395,7 +366,7 @@ xcodeproj(
                 "device",
             ],
         ),
-        "//platform/ios/platform/ios/test:ios_test",
-        "//platform/ios/platform/ios/iosapp-UITests:uitest",
+        "//platform/ios/test:ios_test",
+        "//platform/ios/iosapp-UITests:uitest",
     ],
 )

@@ -1,9 +1,0 @@
-filegroup(
-    name = "ejs_templates",
-    visibility = ["//visibility:public"],
-    srcs = [
-        "guides/For Style Authors.md.ejs",
-        "guides/Migrating to Expressions.md.ejs",
-        "guides/Tile URL Templates.md.ejs",
-    ],
-)

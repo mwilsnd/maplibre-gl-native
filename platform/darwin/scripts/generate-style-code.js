@@ -8,7 +8,7 @@ const _ = require('lodash');
 const colorParser = require('csscolorparser');
 const assert = require('assert');
 
-require('../../../../../scripts/style-code');
+require('../../../scripts/style-code');
 
 // Parse command line
 const args = (() => {
@@ -26,7 +26,7 @@ const cocoaConventions = require('./style-spec-cocoa-conventions-v8.json');
 const prefix = 'MLN';
 const suffix = 'StyleLayer';
 
-let spec = _.merge(require('../../../scripts/style-spec'), require('./style-spec-overrides-v8.json'));
+let spec = _.merge(require('../../../scripts/style-spec-reference/v8'), require('./style-spec-overrides-v8.json'));
 
 class ConventionOverride {
     constructor(val) {
@@ -787,17 +787,17 @@ const lightProperties = Object.keys(spec['light']).reduce((memo, name) => {
 const lightDoc = spec['light-cocoa-doc'];
 const lightType = 'light';
 
-const layerH = ejs.compile(fs.readFileSync('platform/ios/platform/darwin/src/MLNStyleLayer.h.ejs', 'utf8'), { strict: true });
-const layerPrivateH = ejs.compile(fs.readFileSync('platform/ios/platform/darwin/src/MLNStyleLayer_Private.h.ejs', 'utf8'), { strict: true });
-const layerM = ejs.compile(fs.readFileSync('platform/ios/platform/darwin/src/MLNStyleLayer.mm.ejs', 'utf8'), { strict: true});
-const testLayers = ejs.compile(fs.readFileSync('platform/ios/platform/darwin/test/MLNStyleLayerTests.mm.ejs', 'utf8'), { strict: true});
-const forStyleAuthorsMD = ejs.compile(fs.readFileSync('platform/ios/platform/darwin/docs/guides/For Style Authors.md.ejs', 'utf8'), { strict: true });
-const ddsGuideMD = ejs.compile(fs.readFileSync('platform/ios/platform/darwin/docs/guides/Migrating to Expressions.md.ejs', 'utf8'), { strict: true });
-const templatesMD = ejs.compile(fs.readFileSync('platform/ios/platform/darwin/docs/guides/Tile URL Templates.md.ejs', 'utf8'), { strict: true });
+const layerH = ejs.compile(fs.readFileSync('platform/darwin/src/MLNStyleLayer.h.ejs', 'utf8'), { strict: true });
+const layerPrivateH = ejs.compile(fs.readFileSync('platform/darwin/src/MLNStyleLayer_Private.h.ejs', 'utf8'), { strict: true });
+const layerM = ejs.compile(fs.readFileSync('platform/darwin/src/MLNStyleLayer.mm.ejs', 'utf8'), { strict: true});
+const testLayers = ejs.compile(fs.readFileSync('platform/darwin/test/MLNStyleLayerTests.mm.ejs', 'utf8'), { strict: true});
+const forStyleAuthorsMD = ejs.compile(fs.readFileSync('platform/darwin/docs/guides/For_Style_Authors.md.ejs', 'utf8'), { strict: true });
+const ddsGuideMD = ejs.compile(fs.readFileSync('platform/darwin/docs/guides/Migrating_to_Expressions.md.ejs', 'utf8'), { strict: true });
+const templatesMD = ejs.compile(fs.readFileSync('platform/darwin/docs/guides/Tile_URL_Templates.md.ejs', 'utf8'), { strict: true });
 
-const lightH = ejs.compile(fs.readFileSync('platform/ios/platform/darwin/src/MLNLight.h.ejs', 'utf8'), {strict: true});
-const lightM = ejs.compile(fs.readFileSync('platform/ios/platform/darwin/src/MLNLight.mm.ejs', 'utf8'), {strict: true});
-const testLight = ejs.compile(fs.readFileSync('platform/ios/platform/darwin/test/MLNLightTest.mm.ejs', 'utf8'), { strict: true});
+const lightH = ejs.compile(fs.readFileSync('platform/darwin/src/MLNLight.h.ejs', 'utf8'), {strict: true});
+const lightM = ejs.compile(fs.readFileSync('platform/darwin/src/MLNLight.mm.ejs', 'utf8'), {strict: true});
+const testLight = ejs.compile(fs.readFileSync('platform/darwin/test/MLNLightTest.mm.ejs', 'utf8'), { strict: true});
 writeIfModified(`platform/darwin/src/MLNLight.h`, duplicatePlatformDecls(
     lightH({ properties: lightProperties, doc: lightDoc, type: lightType })), args.root);
 writeIfModified(`platform/darwin/src/MLNLight.mm`,
@@ -887,7 +887,7 @@ for (var layer of layers) {
 }
 
 // Extract examples for guides from unit tests.
-let examplesSrc = fs.readFileSync('platform/ios/platform/darwin/test/MLNDocumentationGuideTests.swift', 'utf8');
+/*let examplesSrc = fs.readFileSync('platform/darwin/test/MLNDocumentationGuideTests.swift', 'utf8');
 const exampleRegex = /func test([\w$]+)\s*\(\)\s*\{[^]*?\n([ \t]+)\/\/#-example-code\n([^]+?)\n\2\/\/#-end-example-code\n/gm;
 
 let examples = {};
@@ -942,4 +942,4 @@ writeIfModified(`platform/ios/docs/guides/Tile URL Templates.md`, templatesMD({
 }), args.root);
 writeIfModified(`platform/macos/docs/guides/Tile URL Templates.md`, templatesMD({
     os: 'macOS',
-}), args.root);
+}), args.root);*/
