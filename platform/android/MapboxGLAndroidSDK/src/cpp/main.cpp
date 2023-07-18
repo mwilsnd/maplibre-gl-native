@@ -1,4 +1,3 @@
-#include "jni.hpp"
 #include "jni_native.hpp"
 #include <jni/jni.hpp>
 

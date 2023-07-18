@@ -2,7 +2,7 @@
 
 #include <mbgl/util/util.hpp>
 
-#include "jni.hpp"
+#include <jni/jni.hpp>
 
 namespace mbgl {
 namespace android {

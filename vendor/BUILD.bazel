@@ -9,7 +9,6 @@ cc_library(
             "mapbox-base/deps/geojson-vt-cpp/include/**/*.hpp",
             "mapbox-base/deps/geojson.hpp/include/**/*.hpp",
             "mapbox-base/deps/geometry.hpp/include/**/*.hpp",
-            "mapbox-base/deps/jni.hpp/include/jni/*.hpp",
             "mapbox-base/deps/pixelmatch-cpp/include/mapbox/*.hpp",
             "mapbox-base/deps/shelf-pack-cpp/include/**/*.hpp",
             "mapbox-base/deps/supercluster.hpp/include/*.hpp",
@@ -22,7 +21,6 @@ cc_library(
             "mapbox-base/include/mapbox/**/*.hpp",
         ],
         allow_empty = False,
-        exclude = ["mapbox-base/deps/jni.hpp/include/jni/string_conversion.hpp"],
     ),
     copts = CPP_FLAGS,
     defines = ["RAPIDJSON_HAS_STDSTRING=1"],
@@ -31,7 +29,6 @@ cc_library(
         "mapbox-base/deps/geojson.hpp/include",
         "mapbox-base/deps/geojson-vt-cpp/include",
         "mapbox-base/deps/geometry.hpp/include",
-        "mapbox-base/deps/jni.hpp/include",
         "mapbox-base/deps/pixelmatch-cpp/include",
         "mapbox-base/deps/shelf-pack-cpp/include",
         "mapbox-base/deps/supercluster.hpp/include",
@@ -45,6 +42,19 @@ cc_library(
     ],
     visibility = ["//visibility:public"],
     deps = ["optional"],
+)
+
+cc_library(
+    name = "mapbox-jni",
+    srcs = glob([
+        "mapbox-base/deps/jni.hpp/include/jni/*.hpp",
+    ], exclude = ["mapbox-base/deps/jni.hpp/include/jni/string_conversion.hpp"]) + [
+        "@bazel_tools//tools/jdk:current_java_runtime",
+    ],
+    includes = [
+        "mapbox-base/deps/jni.hpp/include",
+    ],
+    visibility = ["//visibility:public"],
 )
 
 # vendor/parsedate
@@ -208,10 +218,14 @@ cc_library(
         allow_empty = False,
     ),
     hdrs = glob(["icu/include/unicode/*.h"]),
-    copts = CPP_FLAGS + [
-        "-Wno-c11-extensions",
-        "-Wno-conversion",
-    ],
+    copts = CPP_FLAGS + select({
+        "//:windows": [],
+        "//:android": [],
+        "//conditions:default": [
+            "-Wno-c11-extensions",
+            "-Wno-conversion",
+        ],
+    }),
     includes = ["icu/include"],
     visibility = ["//visibility:public"],
 )

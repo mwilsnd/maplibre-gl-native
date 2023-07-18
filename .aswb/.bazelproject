@@ -1,0 +1,43 @@
+directories:
+  platform/android
+  platform/default
+  vendor
+  src
+  include
+  shaders
+
+
+derive_targets_from_directories: false
+
+
+targets:
+  //:mbgl-core
+  //vendor:boost
+  //vendor:csscolorparser
+  //vendor:earcut.hpp
+  //vendor:eternal
+  //vendor:parsedate
+  //vendor:polylabel
+  //vendor:protozero
+  //vendor:unique_resource
+  //vendor:vector-tile
+  //vendor:wagyu
+  //vendor:mapbox-base
+  //vendor:mapbox-base
+  //vendor:mapbox-jni
+  //vendor:icu
+  //platform/android:android-cpp-sdk
+  //platform/android:android-java-sdk
+  //platform/android:android-test-app
+
+
+additional_languages:
+  c
+  kotlin
+
+
+android_sdk_platform: android-33
+
+
+build_flags:
+  --//:maplibre_platform=android

@@ -1,5 +1,10 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="org.maplibre.android.sdk">
 
+    <uses-sdk android:minSdkVersion="18"
+        android:targetSdkVersion="28"
+        android:maxSdkVersion="34"/>
+        
     <uses-feature
         android:glEsVersion="0x00020000"
         android:required="true"/>

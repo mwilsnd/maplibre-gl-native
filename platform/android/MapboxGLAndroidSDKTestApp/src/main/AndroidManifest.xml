@@ -1,8 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="org.maplibre.android.testapp">
 
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+
+    <uses-sdk android:minSdkVersion="18"
+        android:targetSdkVersion="28"
+        android:maxSdkVersion="34"/>
 
     <application
         android:name=".MapLibreApplication"
@@ -14,6 +19,11 @@
         android:roundIcon="@drawable/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
+
+        <provider xmlns:tools="http://schemas.android.com/tools"
+            android:name="androidx.startup.InitializationProvider"
+            android:authorities="${applicationId}.androidx-startup"
+            tools:replace="android:authorities"/>
 
         <activity
             android:name=".activity.FeatureOverviewActivity"

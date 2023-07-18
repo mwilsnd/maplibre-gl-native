@@ -18,6 +18,8 @@
 /platform/ios/platform/ios/Mapbox.playground/build/
 /platform/windows/vendor/mesa3d/
 *.code-workspace
+.aswb/.blaze
+.aswb/.idea
 
 .DS_Store
 .cache

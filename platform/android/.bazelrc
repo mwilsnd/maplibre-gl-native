@@ -1,0 +1,5 @@
+run --//:maplibre_platform=android
+build --//:maplibre_platform=android
+test --//:maplibre_platform=android
+query --//:maplibre_platform=android
+cquery --//:maplibre_platform=android

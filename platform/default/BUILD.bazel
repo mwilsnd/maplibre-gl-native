@@ -72,7 +72,7 @@ cc_library(
             "src/mbgl/util/timer.cpp",
             "src/mbgl/util/webp_reader.cpp",
         ],
-        "//:ios": [],
+        "//conditions:default": [],
     }),
     hdrs = [
         "include/mbgl/gfx/headless_backend.hpp",
@@ -97,6 +97,7 @@ cc_library(
         "//platform/darwin:__pkg__",
         "//platform/ios:__pkg__",
         "//platform/linux:__pkg__",
+        "//platform/android:__pkg__",
     ],
     deps = [
         "//:mbgl-core",
@@ -106,6 +107,9 @@ cc_library(
         ],
         "//:linux": [
             "default-collator",
+        ],
+        "//:android": [
+            "//vendor:mapbox-base",
         ],
     }),
 )

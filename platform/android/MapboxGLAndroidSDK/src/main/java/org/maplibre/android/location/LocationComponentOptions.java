@@ -1057,11 +1057,11 @@ public class LocationComponentOptions implements Parcelable {
       return false;
     }
 
-    if (pulseEnabled != options.pulseEnabled) {
+    if (!pulseEnabled.equals(options.pulseEnabled)) {
       return false;
     }
 
-    if (pulseFadeEnabled != options.pulseFadeEnabled) {
+    if (!pulseFadeEnabled.equals(options.pulseFadeEnabled)) {
       return false;
     }
 
