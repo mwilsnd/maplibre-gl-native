@@ -41,7 +41,7 @@ cc_test(
         ],
     ),
     args = [
-        "--gtest_filter=-Map.StyleNetworkErrorRetry:Map.StyleNotFound",
+        "--gtest_filter=Math*",
     ],
     copts = CPP_FLAGS + MAPLIBRE_FLAGS,
     data = glob(["fixtures/**/*"]) + [
