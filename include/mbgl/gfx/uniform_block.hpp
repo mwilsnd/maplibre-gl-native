@@ -2,6 +2,8 @@
 
 #include <mbgl/util/string_indexer.hpp>
 
+#include <ankerl/unordered_dense.h>
+
 #include <algorithm>
 #include <functional>
 #include <string>
@@ -62,7 +64,8 @@ protected:
 /// Stores a collection of uniform blocks by name
 class UniformBlockArray {
 public:
-    using UniformBlockMap = std::unordered_map<StringIdentity, std::unique_ptr<UniformBlock>>;
+    //using UniformBlockMap = std::unordered_map<StringIdentity, std::unique_ptr<UniformBlock>>;
+    using UniformBlockMap = ankerl::unordered_dense::map<StringIdentity, std::unique_ptr<UniformBlock>>;
 
     /// @brief Constructor
     UniformBlockArray() = default;

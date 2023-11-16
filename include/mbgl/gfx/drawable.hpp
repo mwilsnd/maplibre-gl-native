@@ -8,6 +8,8 @@
 #include <mbgl/util/identity.hpp>
 #include <mbgl/util/traits.hpp>
 
+#include <ankerl/unordered_dense.h>
+
 #include <cstdint>
 #include <cstddef>
 #include <memory>
@@ -43,7 +45,8 @@ using Texture2DPtr = std::shared_ptr<Texture2D>;
 class Drawable {
 public:
     /// @brief Map from sampler location to texture info
-    using Textures = std::unordered_map<int32_t, gfx::Texture2DPtr>;
+    //using Textures = std::unordered_map<int32_t, gfx::Texture2DPtr>;
+    using Textures = ankerl::unordered_dense::map<int32_t, gfx::Texture2DPtr>;
 
 protected:
     Drawable(std::string name);

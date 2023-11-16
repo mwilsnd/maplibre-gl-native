@@ -4,6 +4,8 @@
 #include <mbgl/renderer/paint_property_binder.hpp>
 #include <mbgl/util/string_indexer.hpp>
 
+#include <ankerl/unordered_dense.h>
+
 #include <algorithm>
 #include <array>
 #include <cstdint>
@@ -281,7 +283,8 @@ protected:
 /// Stores a collection of vertex attributes by name
 class VertexAttributeArray {
 public:
-    using AttributeMap = std::unordered_map<StringIdentity, std::unique_ptr<VertexAttribute>>;
+    //using AttributeMap = std::unordered_map<StringIdentity, std::unique_ptr<VertexAttribute>>;
+    using AttributeMap = ankerl::unordered_dense::map<StringIdentity, std::unique_ptr<VertexAttribute>>;
 
     VertexAttributeArray() = default;
     VertexAttributeArray(VertexAttributeArray&&);

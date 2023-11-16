@@ -2,6 +2,8 @@
 
 #include <mbgl/util/string_indexer.hpp>
 
+#include <ankerl/unordered_dense.h>
+
 #include <memory>
 #include <string>
 #include <unordered_map>
@@ -48,7 +50,8 @@ protected:
 /// Stores a collection of uniform buffers by name
 class UniformBufferArray {
 public:
-    using UniformBufferMap = std::unordered_map<StringIdentity, std::shared_ptr<UniformBuffer>>;
+   // using UniformBufferMap = std::unordered_map<StringIdentity, std::shared_ptr<UniformBuffer>>;
+    using UniformBufferMap = ankerl::unordered_dense::map<StringIdentity, std::shared_ptr<UniformBuffer>>;
 
     UniformBufferArray() = default;
     UniformBufferArray(UniformBufferArray&&);
