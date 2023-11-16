@@ -1,5 +1,6 @@
 #pragma once
 
+#include <mbgl/gfx/drawable.hpp>
 #include <mbgl/renderer/render_pass.hpp>
 #include <mbgl/tile/tile_id.hpp>
 #include <mbgl/util/identity.hpp>
@@ -8,6 +9,7 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <set>
 
 namespace mbgl {
 class LayerGroupBase;
@@ -37,6 +39,9 @@ using LayerTweakerWeakPtr = std::weak_ptr<LayerTweaker>;
     A layer-like group of drawables, not a group of layers.
  */
 class LayerGroupBase : public util::SimpleIdentifiable {
+public:
+    using DrawableMap = std::set<gfx::Drawable*, gfx::DrawableLessByPriority>;
+
 protected:
     LayerGroupBase(int32_t layerIndex, std::string name = std::string());
 
@@ -81,6 +86,7 @@ public:
     /// Called at the end of each frame
     virtual void postRender(RenderOrchestrator&, PaintParameters&) {}
 
+    virtual const DrawableMap& getDrawables() const noexcept = 0;
     /// Call the provided function for each drawable in priority order
     virtual std::size_t visitDrawables(const std::function<void(gfx::Drawable&)>&&) = 0;
     virtual std::size_t visitDrawables(const std::function<void(const gfx::Drawable&)>&&) const = 0;
@@ -116,6 +122,8 @@ public:
 
     std::vector<gfx::UniqueDrawable> removeDrawables(mbgl::RenderPass, const OverscaledTileID&);
     void addDrawable(mbgl::RenderPass, const OverscaledTileID&, gfx::UniqueDrawable&&);
+
+    const DrawableMap& getDrawables() const noexcept override;
 
     std::size_t visitDrawables(const std::function<void(gfx::Drawable&)>&&) override;
     std::size_t visitDrawables(const std::function<void(const gfx::Drawable&)>&&) const override;
@@ -153,6 +161,11 @@ public:
 
     std::vector<gfx::UniqueDrawable> removeDrawables(mbgl::RenderPass);
     void addDrawable(gfx::UniqueDrawable&&);
+
+    const DrawableMap& getDrawables() const noexcept override {
+        static DrawableMap m{};
+        return m;
+    }
 
     std::size_t visitDrawables(const std::function<void(gfx::Drawable&)>&&) override;
     std::size_t visitDrawables(const std::function<void(const gfx::Drawable&)>&&) const override;

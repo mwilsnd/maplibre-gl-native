@@ -101,9 +101,12 @@ void SymbolLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintParamete
         propertiesUpdated = false;
     }
 
-    layerGroup.visitDrawables([&](gfx::Drawable& drawable) {
+    const auto& drawables = layerGroup.getDrawables();
+    for (auto* drawablePtr : drawables) {
+        auto& drawable = *drawablePtr;
+    //layerGroup.visitDrawables([&](gfx::Drawable& drawable) {
         if (!drawable.getTileID() || !drawable.getData()) {
-            return;
+            continue;
         }
 
         const auto tileID = drawable.getTileID()->toUnwrapped();
@@ -204,7 +207,8 @@ void SymbolLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintParamete
 
         uniforms.addOrReplace(idExpressionInputsUBOName, expressionUniformBuffer);
 #endif // MLN_RENDER_BACKEND_METAL
-    });
+    //});
+    }
 }
 
 } // namespace mbgl

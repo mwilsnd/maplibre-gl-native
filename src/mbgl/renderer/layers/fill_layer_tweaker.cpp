@@ -231,9 +231,12 @@ void FillLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintParameters
     const auto intZoom = parameters.state.getIntegerZoom();
     const auto pixelRatio = parameters.pixelRatio;
 
-    layerGroup.visitDrawables([&](gfx::Drawable& drawable) {
+    const auto& drawables = layerGroup.getDrawables();
+    for (auto* drawablePtr : drawables) {
+        auto& drawable = *drawablePtr;
+    //layerGroup.visitDrawables([&](gfx::Drawable& drawable) {
         if (!drawable.getTileID() || !checkTweakDrawable(drawable)) {
-            return;
+            continue;
         }
 
         const UnwrappedTileID tileID = drawable.getTileID()->toUnwrapped();
@@ -329,8 +332,9 @@ void FillLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintParameters
 #if MLN_RENDER_BACKEND_METAL
         uniforms.addOrReplace(idExpressionInputsUBOName, expressionUniformBuffer);
 #endif // MLN_RENDER_BACKEND_METAL
-    });
-
+    //});
+    }
+    
     permutationUpdated = false;
     propertiesUpdated = false;
 }

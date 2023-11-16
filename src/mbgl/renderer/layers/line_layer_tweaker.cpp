@@ -117,10 +117,13 @@ void LineLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintParameters
     }
 #endif
 
-    layerGroup.visitDrawables([&](gfx::Drawable& drawable) {
+    const auto& drawables = layerGroup.getDrawables();
+    for (auto* drawablePtr : drawables) {
+        auto& drawable = *drawablePtr;
+    //layerGroup.visitDrawables([&](gfx::Drawable& drawable) {
         const auto shader = drawable.getShader();
         if (!drawable.getTileID() || !shader || !checkTweakDrawable(drawable)) {
-            return;
+            continue;
         }
 
         const UnwrappedTileID tileID = drawable.getTileID()->toUnwrapped();
@@ -348,7 +351,8 @@ void LineLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintParameters
         uniforms.addOrReplace(idExpressionInputsUBOName, expressionUniformBuffer);
         uniforms.addOrReplace(idLinePermutationUBOName, permutationUniformBuffer);
 #endif // MLN_RENDER_BACKEND_METAL
-    });
+    //});
+    }
 }
 
 } // namespace mbgl

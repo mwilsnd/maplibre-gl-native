@@ -5,7 +5,6 @@
 #include <mbgl/renderer/render_orchestrator.hpp>
 
 #include <unordered_map>
-#include <set>
 
 namespace mbgl {
 
@@ -27,8 +26,6 @@ struct TileLayerGroup::Impl {
 
     using TileMap = std::unordered_multimap<TileLayerGroupTileKey, gfx::UniqueDrawable, TileLayerGroupTileKey::hash>;
     TileMap drawablesByTile;
-
-    using DrawableMap = std::set<gfx::Drawable*, gfx::DrawableLessByPriority>;
     DrawableMap sortedDrawables;
 };
 
@@ -81,6 +78,10 @@ void TileLayerGroup::addDrawable(mbgl::RenderPass pass, const OverscaledTileID& 
         assert(result.second);
         impl->drawablesByTile.insert(std::make_pair(TileLayerGroupTileKey{pass, id}, std::move(drawable)));
     }
+}
+
+const LayerGroupBase::DrawableMap& TileLayerGroup::getDrawables() const noexcept {
+    return impl->sortedDrawables;
 }
 
 std::size_t TileLayerGroup::visitDrawables(const std::function<void(gfx::Drawable&)>&& f) {
