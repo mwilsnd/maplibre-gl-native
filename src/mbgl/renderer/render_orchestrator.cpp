@@ -347,6 +347,8 @@ std::unique_ptr<RenderTree> RenderOrchestrator::createRenderTree(
             renderTreeParameters->has3D |= (layerInfo->pass3d == LayerTypeInfo::Pass3D::Required);
 
             if (layerInfo->source != LayerTypeInfo::Source::NotRequired) {
+                bool layerWillRender = false;
+
                 if (layer.baseImpl->source == sourceImpl->id) {
                     const std::string& layerId = layer.getID();
                     sourceNeedsRelayout = (sourceNeedsRelayout || hasImageDiff || constantsMaskChanged.count(layerId) ||
@@ -354,12 +356,15 @@ std::unique_ptr<RenderTree> RenderOrchestrator::createRenderTree(
                     if (layerIsVisible) {
                         filteredLayersForSource.push_back(layer.evaluatedProperties);
                         if (zoomFitsLayer) {
-                            sourceNeedsRendering = true;
+                            sourceNeedsRendering = layerWillRender = true;
                             renderItemsEmplaceHint = layerRenderItems.emplace_hint(
                                 renderItemsEmplaceHint, layer, source, static_cast<uint32_t>(index));
                         }
                     }
                 }
+#if MLN_DRAWABLE_RENDERER
+                layer.markLayerRenderable(layerWillRender, changes);
+#endif
                 continue;
             }
 
@@ -369,32 +374,26 @@ std::unique_ptr<RenderTree> RenderOrchestrator::createRenderTree(
                     const auto& solidBackground = layer.getSolidBackground();
                     if (solidBackground) {
                         renderTreeParameters->backgroundColor = *solidBackground;
+#if MLN_DRAWABLE_RENDERER
+                        layer.markLayerRenderable(false, changes);
+#endif
                         continue; // This layer is shown with background color,
                                   // and it shall not be added to render items.
                     }
                 }
                 renderItemsEmplaceHint = layerRenderItems.emplace_hint(
                     renderItemsEmplaceHint, layer, nullptr, static_cast<uint32_t>(index));
+#if MLN_DRAWABLE_RENDERER
+                layer.markLayerRenderable(true, changes);
+#endif
             }
         }
         source->update(sourceImpl, filteredLayersForSource, sourceNeedsRendering, sourceNeedsRelayout, tileParameters);
         filteredLayersForSource.clear();
-    }
-
 #if MLN_DRAWABLE_RENDERER
-    // Mark layers included in the renderable set as renderable
-    // @TODO: Optimize this logic, combine with the above
-    for (auto orderedLayer : orderedLayers) {
-        RenderLayer& layer = orderedLayer;
-        layer.markLayerRenderable(
-            layerRenderItems.find(LayerRenderItem(layer, nullptr, static_cast<uint32_t>(layer.getLayerIndex()))) !=
-                layerRenderItems.end(),
-            changes);
-    }
-
-    // Add all change requests up to this point
-    addChanges(changes);
+        addChanges(changes);
 #endif
+    }
 
     renderTreeParameters->loaded = updateParameters->styleLoaded && isLoaded();
     if (!isMapModeContinuous && !renderTreeParameters->loaded) {
