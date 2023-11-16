@@ -34,34 +34,26 @@ namespace mbgl {
 
 using namespace style;
 
+LayerRenderItem::LayerRenderItem(RenderLayer& layer_, RenderSource* source_, uint32_t index_)
+        : layer(layer_),
+          source(source_),
+          index(index_) {}
+
+bool LayerRenderItem::hasRenderPass(RenderPass pass) const { return layer.get().hasRenderPass(pass); }
+void LayerRenderItem::upload(gfx::UploadPass& pass) const { layer.get().upload(pass); }
+void LayerRenderItem::render(PaintParameters& parameters) const { layer.get().render(parameters); }
+const std::string& LayerRenderItem::getName() const { return layer.get().getID(); }
+
+#if MLN_DRAWABLE_RENDERER
+void LayerRenderItem::updateDebugDrawables(DebugLayerGroupMap&, PaintParameters&) const {};
+#endif
+
 namespace {
 
 RendererObserver& nullObserver() {
     static RendererObserver observer;
     return observer;
 }
-
-class LayerRenderItem final : public RenderItem {
-public:
-    LayerRenderItem(RenderLayer& layer_, RenderSource* source_, uint32_t index_)
-        : layer(layer_),
-          source(source_),
-          index(index_) {}
-    bool operator<(const LayerRenderItem& other) const { return index < other.index; }
-
-    std::reference_wrapper<RenderLayer> layer;
-    RenderSource* source;
-    const uint32_t index;
-
-private:
-    bool hasRenderPass(RenderPass pass) const override { return layer.get().hasRenderPass(pass); }
-    void upload(gfx::UploadPass& pass) const override { layer.get().upload(pass); }
-    void render(PaintParameters& parameters) const override { layer.get().render(parameters); }
-    const std::string& getName() const override { return layer.get().getID(); }
-#if MLN_DRAWABLE_RENDERER
-    void updateDebugDrawables(DebugLayerGroupMap&, PaintParameters&) const override{};
-#endif
-};
 
 class RenderTreeImpl final : public RenderTree {
 public:
@@ -89,6 +81,7 @@ public:
         }
     }
 
+    const std::set<LayerRenderItem>& getLayerRenderItemMap() const noexcept override { return layerRenderItems; }
     RenderItems getLayerRenderItems() const override { return {layerRenderItems.begin(), layerRenderItems.end()}; }
     RenderItems getSourceRenderItems() const override {
         RenderItems result;
@@ -902,8 +895,8 @@ void RenderOrchestrator::updateLayers(gfx::ShaderRegistry& shaders,
     };
 
     std::vector<std::unique_ptr<ChangeRequest>> changes;
-    for (const auto& item : renderTree.getLayerRenderItems()) {
-        auto& renderLayer = static_cast<const LayerRenderItem&>(item.get()).layer.get();
+    for (const auto& item : renderTree.getLayerRenderItemMap()) {
+        auto& renderLayer = item.layer.get();
         renderLayer.update(shaders, context, state, updateParameters, renderTree, changes);
     }
     addChanges(changes);

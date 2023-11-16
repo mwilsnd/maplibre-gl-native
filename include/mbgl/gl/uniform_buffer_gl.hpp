@@ -2,6 +2,7 @@
 
 #include <mbgl/gfx/uniform_buffer.hpp>
 #include <mbgl/gl/types.hpp>
+#include <array>
 
 namespace mbgl {
 namespace gl {
@@ -10,6 +11,8 @@ class UniformBufferGL final : public gfx::UniformBuffer {
     UniformBufferGL(const UniformBufferGL&);
 
 public:
+    static constexpr int32_t SwapSize = 3;
+
     UniformBufferGL(const void* data, std::size_t size_);
     UniformBufferGL(UniformBufferGL&& other)
         : UniformBuffer(std::move(other)) {}
@@ -20,8 +23,13 @@ public:
 
     UniformBufferGL clone() const { return {*this}; }
 
+private:
+    void nextBuf() noexcept;
+
 protected:
+    std::array<BufferID, SwapSize> ids;
     BufferID id = 0;
+    uint8_t bufPtr = 0;
     uint32_t hash;
 };
 
