@@ -21,9 +21,12 @@ void TileLayerGroupGL::upload(gfx::UploadPass& uploadPass) {
         return;
     }
 
-    visitDrawables([&](gfx::Drawable& drawable) {
+    const auto& drawables = getDrawables();
+    for (auto* drawablePtr : drawables) {
+        auto& drawable = *drawablePtr;
+    //visitDrawables([&](gfx::Drawable& drawable) {
         if (!drawable.getEnabled()) {
-            return;
+            continue;
         }
 
         auto& drawableGL = static_cast<gl::DrawableGL&>(drawable);
@@ -38,7 +41,8 @@ void TileLayerGroupGL::upload(gfx::UploadPass& uploadPass) {
 #endif
 
         drawableGL.upload(uploadPass);
-    });
+    //});
+    }
 }
 
 void TileLayerGroupGL::render(RenderOrchestrator&, PaintParameters& parameters) {
@@ -64,14 +68,16 @@ void TileLayerGroupGL::render(RenderOrchestrator&, PaintParameters& parameters) 
 
         // If we're using stencil clipping, we need to handle 3D features separately
         if (stencilTiles && !stencilTiles->empty()) {
-            visitDrawables([&](const gfx::Drawable& drawable) {
+            const auto& drawables = getDrawables();
+            for (const auto* drawablePtr : drawables) {
+                const auto& drawable = *drawablePtr;
                 if (drawable.getEnabled() && drawable.getIs3D() && drawable.hasRenderPass(parameters.pass)) {
                     features3d = true;
                     if (drawable.getEnableStencil()) {
                         stencil3d = true;
                     }
                 }
-            });
+            }
         }
 
         // If we're doing 3D stenciling and have any features
@@ -90,9 +96,12 @@ void TileLayerGroupGL::render(RenderOrchestrator&, PaintParameters& parameters) 
     const auto debugGroupRender = parameters.encoder->createDebugGroup(label_render.c_str());
 #endif
 
-    visitDrawables([&](gfx::Drawable& drawable) {
+    const auto& drawables = getDrawables();
+    for (auto* drawablePtr : drawables) {
+        auto& drawable = *drawablePtr;
+    //visitDrawables([&](gfx::Drawable& drawable) {
         if (!drawable.getEnabled() || !drawable.hasRenderPass(parameters.pass)) {
-            return;
+            continue;
         }
 
 #if !defined(NDEBUG)
@@ -117,7 +126,8 @@ void TileLayerGroupGL::render(RenderOrchestrator&, PaintParameters& parameters) 
         }
 
         drawable.draw(parameters);
-    });
+    //});
+    }
 }
 
 LayerGroupGL::LayerGroupGL(int32_t layerIndex_, std::size_t initialCapacity, std::string name_)

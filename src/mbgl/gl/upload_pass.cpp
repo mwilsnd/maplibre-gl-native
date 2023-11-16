@@ -215,11 +215,13 @@ gfx::AttributeBindingArray UploadPass::buildAttributeBindings(
         };
     }
 
-    // For each attribute in the program, with the corresponding default and optional override...
-    const auto resolveAttr = [&](const StringIdentity id, auto& defaultAttr, auto& overrideAttr) -> void {
-        auto& effectiveAttr = overrideAttr ? *overrideAttr : defaultAttr;
-        const auto& defaultGL = static_cast<const VertexAttributeGL&>(defaultAttr);
-        const auto stride = defaultAttr.getStride();
+    const auto& attrs = defaults.getAttrs();
+    for (const auto& [id, defaultAttr] : attrs) {
+        auto& overrideAttr = overrides.get(id);
+
+        auto& effectiveAttr = overrideAttr ? *overrideAttr : *defaultAttr;
+        const auto& defaultGL = static_cast<const VertexAttributeGL&>(*defaultAttr);
+        const auto stride = defaultAttr->getStride();
         const auto offset = static_cast<uint32_t>(allData.size());
         const auto index = static_cast<std::size_t>(defaultGL.getIndex());
 
@@ -232,12 +234,12 @@ gfx::AttributeBindingArray UploadPass::buildAttributeBindings(
                 /*.vertexBufferResource = */ buffer.get(),
                 /*.vertexOffset = */ effectiveAttr.getSharedVertexOffset(),
             };
-            return;
+            continue;
         }
 
         if (index == vertexAttributeIndex) {
             // already handled
-            return;
+            continue;
         }
 
         if (allData.empty()) {
@@ -265,11 +267,11 @@ gfx::AttributeBindingArray UploadPass::buildAttributeBindings(
                          "Got " + util::toString(rawData.size()) + " bytes for attribute '" + stringIndexer().get(id) +
                              "' (" + util::toString(defaultGL.getIndex()) + "), expected " + util::toString(stride) +
                              " or " + util::toString(stride * vertexCount));
-            return;
+            continue;
         }
 
         bindings[index] = {
-            /*.attribute = */ {defaultAttr.getDataType(), offset},
+            /*.attribute = */ {defaultAttr->getDataType(), offset},
             /* vertexStride = */ static_cast<uint32_t>(stride),
             /* vertexBufferResource = */ nullptr, // buffer details established later
             /* vertexOffset = */ 0,
@@ -279,8 +281,8 @@ gfx::AttributeBindingArray UploadPass::buildAttributeBindings(
 
         // The vertex stride is the sum of the attribute strides
         vertexStride += static_cast<uint32_t>(stride);
-    };
-    defaults.resolve(overrides, resolveAttr);
+    }
+    //defaults.resolve(overrides, resolveAttr);
 
     assert(vertexStride * vertexCount <= allData.size());
 

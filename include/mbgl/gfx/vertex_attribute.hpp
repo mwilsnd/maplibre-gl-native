@@ -339,6 +339,8 @@ public:
     /// Clear the collection
     void clear();
 
+    inline const AttributeMap& getAttrs() const noexcept { return attrs; }
+
     /// Do something with each attribute
     void visitAttributes(const std::function<void(const StringIdentity, VertexAttribute&)>& f) {
         std::for_each(attrs.begin(), attrs.end(), [&](const auto& kv) {
