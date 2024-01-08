@@ -28,7 +28,7 @@ void DrawableCustomLayerHostTweaker::execute([[maybe_unused]] gfx::Drawable& dra
     parameters.pitch = state.getPitch();
     parameters.fieldOfView = state.getFieldOfView();
     mat4 projMatrix;
-    state.getProjMatrix(projMatrix);
+    state.getProjMatrixForRendering(projMatrix);
     parameters.projectionMatrix = projMatrix;
 
     host->render(parameters);

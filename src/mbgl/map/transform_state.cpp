@@ -101,7 +101,15 @@ void TransformState::matrixFor(mat4& matrix, const UnwrappedTileID& tileID) cons
     matrix::scale(matrix, matrix, s / util::EXTENT, s / util::EXTENT, 1);
 }
 
-void TransformState::getProjMatrix(mat4& projMatrix, uint16_t nearZ, bool aligned) const {
+void TransformState::getProjMatrixForRendering(mat4& matrix, uint16_t nearZ, bool aligned) const {
+#ifdef MLN_REVERSE_Z_BUFFER
+    getProjMatrix(matrix, nearZ, aligned, true);
+#else
+    getProjMatrix(matrix, nearZ, aligned, false);
+#endif
+}
+
+void TransformState::getProjMatrix(mat4& projMatrix, uint16_t nearZ, bool aligned, bool reverseZ) const {
     if (size.isEmpty()) {
         return;
     }
@@ -129,7 +137,7 @@ void TransformState::getProjMatrix(mat4& projMatrix, uint16_t nearZ, bool aligne
 
     mat4 worldToCamera = camera.getWorldToCamera(scale, viewportMode == ViewportMode::FlippedY);
     mat4 cameraToClip = camera.getCameraToClipPerspective(
-        getFieldOfView(), static_cast<double>(size.width) / size.height, nearZ, farZ);
+        getFieldOfView(), static_cast<double>(size.width) / size.height, nearZ, farZ, reverseZ);
 
     // Move the center of perspective to center of specified edgeInsets.
     // Values are in range [-1, 1] where the upper and lower range values

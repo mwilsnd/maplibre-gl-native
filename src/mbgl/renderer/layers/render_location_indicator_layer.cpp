@@ -835,7 +835,7 @@ void RenderLocationIndicatorLayer::prepare(const LayerPrepareParameters& p) {
     renderImpl->parameters.bearing = util::rad2deg(-state.getBearing());
     renderImpl->parameters.pitch = state.getPitch();
     mat4 projMatrix;
-    state.getProjMatrix(projMatrix);
+    state.getProjMatrixForRendering(projMatrix);
     renderImpl->parameters.projectionMatrix = projMatrix;
 
     renderImpl->updatePuckGeometry(renderImpl->parameters);

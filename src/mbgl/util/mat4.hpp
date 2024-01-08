@@ -42,7 +42,7 @@ constexpr matf4 identity4f() {
 
 bool invert(mat4& out, const mat4& a);
 void ortho(mat4& out, double left, double right, double bottom, double top, double near, double far);
-void perspective(mat4& out, double fovy, double aspect, double near, double far);
+void perspective(mat4& out, double fovy, double aspect, double near, double far, bool reverseZ = false);
 void copy(mat4& out, const mat4& a);
 void translate(mat4& out, const mat4& a, double x, double y, double z);
 void rotate_x(mat4& out, const mat4& a, double rad);

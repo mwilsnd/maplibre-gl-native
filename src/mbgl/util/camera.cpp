@@ -140,9 +140,9 @@ mat4 Camera::getWorldToCamera(double scale, bool flippedY) const {
     return result;
 }
 
-mat4 Camera::getCameraToClipPerspective(double fovy, double aspectRatio, double nearZ, double farZ) const {
+mat4 Camera::getCameraToClipPerspective(double fovy, double aspectRatio, double nearZ, double farZ, bool reverseZ) const {
     mat4 projection;
-    matrix::perspective(projection, fovy, aspectRatio, nearZ, farZ);
+    matrix::perspective(projection, fovy, aspectRatio, nearZ, farZ, reverseZ);
     return projection;
 }
 

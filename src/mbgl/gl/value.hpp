@@ -116,7 +116,11 @@ struct DepthTest {
 
 struct DepthFunc {
     using Type = gfx::DepthFunctionType;
+#ifdef MLN_REVERSE_Z_BUFFER
+    static const constexpr Type Default = gfx::DepthFunctionType::Greater;
+#else
     static const constexpr Type Default = gfx::DepthFunctionType::Less;
+#endif
     static void Set(const Type&);
     static Type Get();
 };

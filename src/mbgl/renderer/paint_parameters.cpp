@@ -21,17 +21,17 @@ namespace mbgl {
 TransformParameters::TransformParameters(const TransformState& state_)
     : state(state_) {
     // Update the default matrices to the current viewport dimensions.
-    state.getProjMatrix(projMatrix);
+    state.getProjMatrixForRendering(projMatrix);
 
     // Also compute a projection matrix that aligns with the current pixel grid,
     // taking into account odd viewport sizes.
-    state.getProjMatrix(alignedProjMatrix, 1, true);
+    state.getProjMatrixForRendering(alignedProjMatrix, 1, true);
 
     // Calculate a second projection matrix with the near plane moved further,
     // to a tenth of the far value, so as not to waste depth buffer precision on
     // very close empty space, for layer types (fill-extrusion) that use the
     // depth buffer to emulate real-world space.
-    state.getProjMatrix(nearClippedProjMatrix, static_cast<uint16_t>(0.1 * state.getCameraToCenterDistance()));
+    state.getProjMatrixForRendering(nearClippedProjMatrix, static_cast<uint16_t>(0.1 * state.getCameraToCenterDistance()));
 }
 
 PaintParameters::PaintParameters(gfx::Context& context_,
@@ -90,6 +90,8 @@ gfx::DepthMode PaintParameters::depthModeForSublayer([[maybe_unused]] uint8_t n,
 #if MLN_RENDER_BACKEND_OPENGL
     float depth = depthRangeSize + ((1 + currentLayer) * numSublayers + n) * depthEpsilon;
     return gfx::DepthMode{gfx::DepthFunctionType::LessEqual, mask, {depth, depth}};
+#elif MLN_REVERSE_Z_BUFFER
+    return gfx::DepthMode{gfx::DepthFunctionType::GreaterEqual, mask};
 #else
     return gfx::DepthMode{gfx::DepthFunctionType::LessEqual, mask};
 #endif
@@ -98,6 +100,8 @@ gfx::DepthMode PaintParameters::depthModeForSublayer([[maybe_unused]] uint8_t n,
 gfx::DepthMode PaintParameters::depthModeFor3D() const {
 #if MLN_RENDER_BACKEND_OPENGL
     return gfx::DepthMode{gfx::DepthFunctionType::LessEqual, gfx::DepthMaskType::ReadWrite, {0.0, depthRangeSize}};
+#elif MLN_REVERSE_Z_BUFFER
+    return gfx::DepthMode{gfx::DepthFunctionType::GreaterEqual, gfx::DepthMaskType::ReadWrite};
 #else
     return gfx::DepthMode{gfx::DepthFunctionType::LessEqual, gfx::DepthMaskType::ReadWrite};
 #endif

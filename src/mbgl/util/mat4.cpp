@@ -126,7 +126,7 @@ void ortho(mat4& out, double left, double right, double bottom, double top, doub
     out[15] = 1.0f;
 }
 
-void perspective(mat4& out, double fovy, double aspect, double near, double far) {
+void perspective(mat4& out, double fovy, double aspect, double near, double far, bool reverseZ) {
     double f = 1.0f / std::tan(fovy / 2.0f);
     double nf = 1.0f / (near - far);
     out[0] = f / aspect;
@@ -139,11 +139,11 @@ void perspective(mat4& out, double fovy, double aspect, double near, double far)
     out[7] = 0.0f;
     out[8] = 0.0f;
     out[9] = 0.0f;
-    out[10] = (far + near) * nf;
+    out[10] = reverseZ ? 0.0f : (far + near) * nf;
     out[11] = -1.0f;
     out[12] = 0.0f;
     out[13] = 0.0f;
-    out[14] = (2.0f * far * near) * nf;
+    out[14] = reverseZ ? (far * near) / (near - far) : (2.0f * far * near) * nf;
     out[15] = 0.0f;
 }
 

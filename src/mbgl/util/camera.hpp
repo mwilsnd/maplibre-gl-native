@@ -18,7 +18,7 @@ public:
     vec3 getPosition() const;
     mat4 getCameraToWorld(double scale, bool flippedY) const;
     mat4 getWorldToCamera(double scale, bool flippedY) const;
-    mat4 getCameraToClipPerspective(double fovy, double aspectRatio, double nearZ, double farZ) const;
+    mat4 getCameraToClipPerspective(double fovy, double aspectRatio, double nearZ, double farZ, bool reverseZ = false) const;
 
     vec3 forward() const;
     vec3 right() const;

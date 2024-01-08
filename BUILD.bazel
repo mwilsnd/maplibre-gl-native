@@ -107,16 +107,19 @@ cc_library(
             "MLN_RENDER_BACKEND_OPENGL=1",
             "MLN_LEGACY_RENDERER=1",
             "MLN_DRAWABLE_RENDERER=0",
+            "MLN_REVERSE_Z_BUFFER=0",
         ],
         ":drawable_renderer": [
             "MLN_RENDER_BACKEND_OPENGL=1",
             "MLN_LEGACY_RENDERER=0",
             "MLN_DRAWABLE_RENDERER=1",
+            "MLN_REVERSE_Z_BUFFER=0",
         ],
         ":metal_renderer": [
             "MLN_RENDER_BACKEND_METAL=1",
             "MLN_LEGACY_RENDERER=0",
             "MLN_DRAWABLE_RENDERER=1",
+            "MLN_REVERSE_Z_BUFFER=1",
         ],
     }) + select({
         "//:ios": ["GLES_SILENCE_DEPRECATION=1"],
