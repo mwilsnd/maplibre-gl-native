@@ -4,6 +4,7 @@
 #include <mbgl/util/immutable.hpp>
 
 #include <map>
+#include <mutex>
 #include <string>
 
 namespace mbgl {
@@ -48,7 +49,7 @@ public:
     void notifyIfMissingImageAdded();
     void reduceMemoryUse();
     void reduceMemoryUseIfCacheSizeExceedsLimit();
-    const std::set<std::string>& getAvailableImages() const;
+    std::set<std::string> getAvailableImages() const;
 
     ImageVersionMap updatedImageVersions;
 
@@ -57,7 +58,6 @@ public:
 private:
     void checkMissingAndNotify(ImageRequestor&, const ImageRequestPair&);
     void notify(ImageRequestor&, const ImageRequestPair&) const;
-    void removePattern(const std::string&);
 
     bool loaded = false;
 
@@ -70,6 +70,8 @@ private:
     std::set<std::string> availableImages;
 
     ImageManagerObserver* observer = nullptr;
+
+    mutable std::recursive_mutex rwLock;
 };
 
 class ImageRequestor {
