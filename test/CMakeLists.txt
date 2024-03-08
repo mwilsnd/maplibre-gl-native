@@ -204,7 +204,11 @@ if(CMAKE_SYSTEM_NAME STREQUAL Darwin)
 endif()
 
 # Needed for testing private classes
+if(CMAKE_SYSTEM_NAME STREQUAL Darwin)
+set(MLN_CORE_PRIVATE_LIBRARIES "")
+else()
 get_target_property(MLN_CORE_PRIVATE_LIBRARIES mbgl-core LINK_LIBRARIES)
+endif()
 
 target_link_libraries(
     mbgl-test

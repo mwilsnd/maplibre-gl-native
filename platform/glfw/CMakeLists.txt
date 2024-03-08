@@ -52,7 +52,10 @@ target_include_directories(
     PRIVATE
         ${GLFW_INCLUDE_DIRS}
         # For /platform/default/src/mbgl/map/map_snapshotter.hpp
-    PRIVATE ${PROJECT_SOURCE_DIR}/src
+    PRIVATE
+        ${PROJECT_SOURCE_DIR}/src
+        ${PROJECT_SOURCE_DIR}/platform/default/include
+
 )
 
 # Use target_link_directories when we move away from CMake 3.10.

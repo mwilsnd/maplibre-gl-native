@@ -4,7 +4,6 @@ load(
     "MLN_MACOS_PRIVATE_HEADERS",
     "MLN_MACOS_PUBLIC_HEADERS",
     "MLN_MACOS_PUBLIC_OBJCPP_METAL_SOURCE",
-    "MLN_MACOS_PUBLIC_OBJCPP_OPENGL_SOURCE",
     "MLN_MACOS_PUBLIC_OBJCPP_SOURCE",
     "MLN_MACOS_PUBLIC_OBJC_SOURCE",
 )
@@ -17,16 +16,13 @@ filegroup(
 
 filegroup(
     name = "macos_public_hdrs",
-    srcs = MLN_MACOS_PUBLIC_HEADERS,
+    srcs = MLN_MACOS_PUBLIC_HEADERS + MLN_MACOS_PUBLIC_METAL_HEADERS,
     visibility = ["//visibility:public"],
 )
 
 filegroup(
     name = "macos_objcpp_srcs",
-    srcs = MLN_MACOS_PUBLIC_OBJCPP_SOURCE + select({
-        "//:metal_renderer": MLN_MACOS_PUBLIC_OBJCPP_METAL_SOURCE,
-        "//conditions:default": MLN_MACOS_PUBLIC_OBJCPP_OPENGL_SOURCE,
-    }),
+    srcs = MLN_MACOS_PUBLIC_OBJCPP_SOURCE + MLN_MACOS_PUBLIC_OBJCPP_METAL_SOURCE,
     visibility = ["//visibility:public"],
 )
 
@@ -34,6 +30,36 @@ filegroup(
     name = "macos_objc_srcs",
     srcs = MLN_MACOS_PUBLIC_OBJC_SOURCE,
     visibility = ["//visibility:public"],
+)
+
+macos_command_line_application(
+    name = "MapLibreMac",
+    minimum_os_version = "13.0",
+    minimum_deployment_os_version = "13.0",
+    deps = ["//platform:macos-objcpp"],
+    visibility = ["//visibility:public"],
+)
+
+xcodeproj(
+    name = "xcodeproj",
+    bazel_env = {"PATH": "/bin:/usr/bin:/usr/local/bin:/opt/homebrew/bin"},
+    build_mode = BUILD_MODE,
+    default_xcode_configuration = "Debug",
+    minimum_xcode_version = "14",
+    project_name = "MapLibre",
+    tags = ["manual"],
+    top_level_targets = [
+        top_level_target(
+            "//platform/macos:MapLibreMac",
+            target_environments = [
+                "simulator",
+            ],
+        ),
+    ],
+    xcode_configurations = {
+        "Debug": {"//command_line_option:compilation_mode": "dbg"},
+        "Release": {"//command_line_option:compilation_mode": "opt"},
+    },
 )
 
 exports_files(

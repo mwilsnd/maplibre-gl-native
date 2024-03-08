@@ -1,6 +1,69 @@
 load("@aspect_rules_js//js:defs.bzl", "js_binary")
 load("//bazel:flags.bzl", "CPP_FLAGS", "MAPLIBRE_FLAGS", "WARNING_FLAGS")
 
+# MacOS targets
+objc_library(
+    name = "macos-objcpp",
+    srcs = [
+        "//platform/macos:macos_objcpp_srcs",
+        "//platform/darwin:darwin_private_hdrs",
+        "//platform/macos:macos_private_hdrs",
+        "//platform/macos:macos_public_hdrs",
+    ],
+    hdrs = [
+        "//platform/darwin:include/mbgl/util/image+MLNAdditions.hpp",
+    ],
+    includes = [
+        "darwin/include",
+        "darwin/src",
+    ],
+    sdk_frameworks = [
+        "MetalKit",
+        "QuartzCore",
+        "CoreGraphics",
+        "CoreLocation",
+    ],
+    copts = CPP_FLAGS + MAPLIBRE_FLAGS + WARNING_FLAGS["ios"] + [
+        "-fcxx-modules",
+        "-fmodules",
+        "-Wno-vla-extension",
+        "-Wno-gnu-conditional-omitted-operand",
+        "-Wno-deprecated-declarations",
+    ],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//:mbgl-core",
+        "//platform/default:mbgl-default",
+        "//platform/darwin:darwin-objcpp",
+        "//platform/darwin:darwin-generated-style-artifacts",
+    ],
+)
+
+objc_library(
+    name = "macos-objc",
+    srcs = [
+        "//platform/macos:macos_objc_srcs",
+        "//platform/macos:macos_private_hdrs",
+        "//platform/macos:macos_public_hdrs",
+        "//platform/darwin:darwin_objc_hdrs",
+        "//platform/darwin:darwin_private_hdrs",
+    ],
+    copts = WARNING_FLAGS["ios"] + MAPLIBRE_FLAGS + [
+        "-fmodules",
+    ],
+    includes = [
+        "darwin/src",
+        "darwin/include",
+    ],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//:mbgl-core",
+        "//platform/default:mbgl-default",
+        "//platform/darwin:darwin-objc",
+        "//platform/darwin:darwin-generated-style-artifacts",
+    ],
+)
+
 # Objcpp files for the iOS source
 objc_library(
     name = "objcpp-sdk",

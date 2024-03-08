@@ -1,5 +1,10 @@
 cmake_minimum_required(VERSION 3.19 FATAL_ERROR)
 
+# MacOS build target
+set(CMAKE_OSX_DEPLOYMENT_TARGET 13.6 CACHE STRING "" FORCE)
+add_compile_options(-mmacosx-version-min=${CMAKE_OSX_DEPLOYMENT_TARGET})
+add_link_options(-mmacosx-version-min=${CMAKE_OSX_DEPLOYMENT_TARGET})
+
 option(MLN_WITH_CORE_ONLY "Build only the core bits, no platform code" OFF)
 option(MLN_WITH_CLANG_TIDY "Build with clang-tidy checks enabled" OFF)
 option(MLN_WITH_COVERAGE "Enable code coverage collection" OFF)
@@ -8,12 +13,19 @@ option(MLN_WITH_NODE "Build MapLibre Native Node.js bindings" OFF)
 option(MLN_WITH_SANITIZER "Use [address|thread|undefined] here" OFF)
 option(MLN_WITH_RTTI "Compile with runtime type information" OFF)
 option(MLN_WITH_OPENGL "Build with OpenGL renderer" ON)
+option(MLN_WITH_METAL "Build with Metal renderer" ON)
 option(MLN_WITH_EGL "Build with EGL renderer" OFF)
 option(MLN_WITH_OSMESA "Build with OSMesa (Software) renderer" OFF)
 option(MLN_WITH_WERROR "Make all compilation warnings errors" ON)
 option(MLN_LEGACY_RENDERER "Include the legacy rendering pathway" ON)
 option(MLN_DRAWABLE_RENDERER "Include the drawable rendering pathway" OFF)
 option(MLN_USE_UNORDERED_DENSE "Use ankerl dense containers for performance" ON)
+
+if(MLN_WITH_QT)
+    set(MLN_CORE_SHARED_LIBRARY ON)
+else()
+    set(MLN_CORE_SHARED_LIBRARY OFF)
+endif()
 
 if (MLN_WITH_CLANG_TIDY)
     find_program(CLANG_TIDY_COMMAND NAMES clang-tidy)
@@ -26,10 +38,6 @@ if (MLN_WITH_CLANG_TIDY)
     # that's why we need to disable this `unknown-warning-option` here. 
     # We could check if current compiler supports particular flag before enabling it.
     set(CLANG_TIDY_COMMAND "${CLANG_TIDY_COMMAND};--extra-arg=-Wno-unknown-warning-option;--extra-arg=-Wno-pragmas")
-endif()
-
-if (MLN_WITH_QT AND NOT CMAKE_OSX_DEPLOYMENT_TARGET)
-    set(CMAKE_OSX_DEPLOYMENT_TARGET 13.0)
 endif()
 
 if(WIN32 AND NOT MLN_WITH_QT)
@@ -57,6 +65,16 @@ add_library(
 )
 
 set(UBSAN_BLACKLIST ${PROJECT_SOURCE_DIR}/scripts/ubsan.blacklist)
+
+if(CMAKE_SYSTEM_NAME STREQUAL Darwin)
+    set(MLN_DARWIN_WITH_BAZEL TRUE)
+    set(MLN_WITH_OPENGL OFF)
+    set(MLN_WITH_METAL ON)
+    set(MLN_DRAWABLE_RENDERER ON)
+    message(STATUS "Linking externally with bazel")
+else()
+    set(MLN_DARWIN_WITH_BAZEL OFF)
+endif() 
 
 if (MLN_DRAWABLE_RENDERER)
     set(MLN_LEGACY_RENDERER OFF)
@@ -133,7 +151,15 @@ set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_MINSIZEREL ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(CMAKE_VISIBILITY_INLINES_HIDDEN 1)
 
-if(MLN_WITH_QT)
+if(MLN_DARWIN_WITH_BAZEL)
+    if(MLN_CORE_SHARED_LIBRARY)
+        message(STATUS "mbgl-core is a shared IMPORTED library")
+        add_library(mbgl-core OBJECT IMPORTED GLOBAL)
+    else()
+        message(STATUS "mbgl-core is a static IMPORTED library")
+        add_library(mbgl-core STATIC IMPORTED GLOBAL)
+    endif()
+elseif(MLN_CORE_SHARED_LIBRARY)
     add_library(mbgl-core OBJECT)
 else()
     add_library(mbgl-core STATIC)
@@ -990,8 +1016,12 @@ list(APPEND SRC_FILES
     ${PROJECT_SOURCE_DIR}/src/mbgl/util/work_request.cpp
 )
 
-if(MLN_WITH_OPENGL)
-    message(STATUS "Configuring GL-Native with OpenGL renderer backend")
+if(MLN_DARWIN_WITH_BAZEL)
+    add_compile_definitions(
+        MLN_DRAWABLE_RENDERER=1
+        MLN_RENDER_BACKEND_METAL=1
+    )
+elseif(MLN_WITH_OPENGL)
     target_compile_definitions(
         mbgl-core
         PRIVATE MLN_RENDER_BACKEND_OPENGL=1
@@ -1000,6 +1030,15 @@ if(MLN_WITH_OPENGL)
             "MLN_DRAWABLE_RENDERER=$<BOOL:${MLN_DRAWABLE_RENDERER}>"
             "MLN_USE_UNORDERED_DENSE=$<BOOL:${MLN_USE_UNORDERED_DENSE}>"
     )
+elseif(MLN_WITH_METAL)
+    target_compile_definitions(
+        mbgl-core
+        PRIVATE MLN_RENDER_BACKEND_METAL=1
+    )
+endif()
+
+if(MLN_WITH_OPENGL)
+    message(STATUS "Configuring GL-Native with OpenGL renderer backend")
     list(APPEND 
         INCLUDE_FILES
             ${PROJECT_SOURCE_DIR}/include/mbgl/gfx/backend.hpp
@@ -1180,7 +1219,7 @@ if(MLN_WITH_OPENGL)
     endif()
 endif()
 
-if(MBGL_WITH_METAL)
+if(MLN_WITH_METAL)
     message(STATUS "Configuring Metal renderer backend")
     target_compile_definitions(
         mbgl-core
@@ -1233,7 +1272,7 @@ if(MBGL_WITH_METAL)
             ${PROJECT_SOURCE_DIR}/include/mbgl/shaders/mtl/symbol_icon.hpp
             ${PROJECT_SOURCE_DIR}/include/mbgl/shaders/mtl/symbol_sdf.hpp
             ${PROJECT_SOURCE_DIR}/include/mbgl/shaders/mtl/symbol_text_and_icon.hpp
-            )
+        )
     list(APPEND 
         SRC_FILES
             ${PROJECT_SOURCE_DIR}/src/mbgl/mtl/buffer_resource.cpp
@@ -1256,36 +1295,42 @@ if(MBGL_WITH_METAL)
             ${PROJECT_SOURCE_DIR}/src/mbgl/mtl/vertex_attribute.cpp
             ${PROJECT_SOURCE_DIR}/src/mbgl/mtl/vertex_buffer_resource.cpp
             ${PROJECT_SOURCE_DIR}/src/mbgl/shaders/mtl/shader_program.cpp
-            ${PROJECT_SOURCE_DIR}src/mbgl/shaders/mtl/background.cpp
-            ${PROJECT_SOURCE_DIR}src/mbgl/shaders/mtl/background_pattern.cpp
-            ${PROJECT_SOURCE_DIR}src/mbgl/shaders/mtl/circle.cpp
-            ${PROJECT_SOURCE_DIR}src/mbgl/shaders/mtl/collision_box.cpp
-            ${PROJECT_SOURCE_DIR}src/mbgl/shaders/mtl/collision_circle.cpp
-            ${PROJECT_SOURCE_DIR}src/mbgl/shaders/mtl/clipping_mask.cpp
-            ${PROJECT_SOURCE_DIR}src/mbgl/shaders/mtl/custom_symbol_icon.cpp
-            ${PROJECT_SOURCE_DIR}src/mbgl/shaders/mtl/debug.cpp
-            ${PROJECT_SOURCE_DIR}src/mbgl/shaders/mtl/fill.cpp
-            ${PROJECT_SOURCE_DIR}src/mbgl/shaders/mtl/fill_extrusion.cpp
-            ${PROJECT_SOURCE_DIR}src/mbgl/shaders/mtl/fill_extrusion_pattern.cpp
-            ${PROJECT_SOURCE_DIR}src/mbgl/shaders/mtl/heatmap.cpp
-            ${PROJECT_SOURCE_DIR}src/mbgl/shaders/mtl/heatmap_texture.cpp
-            ${PROJECT_SOURCE_DIR}src/mbgl/shaders/mtl/hillshade.cpp
-            ${PROJECT_SOURCE_DIR}src/mbgl/shaders/mtl/hillshade_prepare.cpp
-            ${PROJECT_SOURCE_DIR}src/mbgl/shaders/mtl/line.cpp
-            ${PROJECT_SOURCE_DIR}src/mbgl/shaders/mtl/line_gradient.cpp
-            ${PROJECT_SOURCE_DIR}src/mbgl/shaders/mtl/raster.cpp
-            ${PROJECT_SOURCE_DIR}src/mbgl/shaders/mtl/symbol_icon.cpp
-            ${PROJECT_SOURCE_DIR}src/mbgl/shaders/mtl/symbol_sdf.cpp
-            ${PROJECT_SOURCE_DIR}src/mbgl/shaders/mtl/symbol_text_and_icon.cpp
-    ]
     )
 endif()
 
-target_sources(
-    mbgl-core PRIVATE
-    ${INCLUDE_FILES}
-    ${SRC_FILES}
-)
+if(NOT MLN_DARWIN_WITH_BAZEL)
+    target_sources(
+        mbgl-core PRIVATE
+        ${INCLUDE_FILES}
+        ${SRC_FILES}
+    )
+else()
+    add_custom_target(
+        mbgl-core-bazel-gen
+    )
+    #add_dependencies(mbgl-core mbgl-core-bazel-gen)
+
+    #if(CMAKE_BUILD_TYPE STREQUAL Debug)
+    set(MLN_CMAKE_BAZEL_LIB_ROOT ${PROJECT_SOURCE_DIR}/bazel-out/darwin-dbg/bin)
+    set(MLN_CMAKE_BAZEL_BIN_ROOT ${PROJECT_SOURCE_DIR}/bazel-bin)
+        add_custom_command(
+            TARGET mbgl-core-bazel-gen
+            PRE_BUILD
+            COMMAND bazelisk build //:mbgl-core --compilation_mode=dbg --//:renderer=metal
+                --//:maplibre_platform=ios --macos_minimum_os=${CMAKE_OSX_DEPLOYMENT_TARGET}
+            WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+            VERBATIM
+        )
+
+    target_sources(
+        mbgl-core PUBLIC INTERFACE
+        ${INCLUDE_FILES}
+    )
+    set_target_properties(
+        mbgl-core PROPERTIES
+        IMPORTED_LOCATION ${MLN_CMAKE_BAZEL_LIB_ROOT}/libmbgl-core.a
+    )
+endif()
 
 if (MLN_WITH_CLANG_TIDY)
     set_target_properties(mbgl-core PROPERTIES CXX_CLANG_TIDY "${CLANG_TIDY_COMMAND}")
@@ -1316,15 +1361,21 @@ set_source_files_properties(
     MBGL_VERSION_REV="${MLN_VERSION_REV}"
 )
 
-target_include_directories(
-    mbgl-core
-    PRIVATE ${PROJECT_SOURCE_DIR}/src
-)
+if(NOT MLN_DARWIN_WITH_BAZEL)
+    target_include_directories(
+        mbgl-core
+        PRIVATE ${PROJECT_SOURCE_DIR}/src
+    )
 
-target_include_directories(
-    mbgl-core
-    PUBLIC ${PROJECT_SOURCE_DIR}/include
-)
+    target_include_directories(
+        mbgl-core
+        PUBLIC ${PROJECT_SOURCE_DIR}/include
+    )
+else()
+    set_target_properties(
+        mbgl-core
+        PROPERTIES INTERFACE_INCLUDE_DIRECTORIES ${PROJECT_SOURCE_DIR}/include)
+endif()
 
 include(${PROJECT_SOURCE_DIR}/vendor/boost.cmake)
 include(${PROJECT_SOURCE_DIR}/vendor/csscolorparser.cmake)
@@ -1348,38 +1399,61 @@ set_target_properties(
         INTERFACE_MAPBOX_LICENSE ${PROJECT_SOURCE_DIR}/vendor/unordered_dense/LICENSE
 )
 
-target_link_libraries(
-    mbgl-core
-    PRIVATE
-        Mapbox::Base::Extras::kdbush.hpp
-        Mapbox::Base::supercluster.hpp
-        Mapbox::Base::shelf-pack-cpp
-        Mapbox::Base::geojson-vt-cpp
-        Mapbox::Base::cheap-ruler-cpp
-        mbgl-compiler-options
-        mbgl-vendor-boost
-        mbgl-vendor-csscolorparser
-        mbgl-vendor-earcut.hpp
-        mbgl-vendor-eternal
-        mbgl-vendor-parsedate
-        mbgl-vendor-polylabel
-        mbgl-vendor-protozero
-        mbgl-vendor-unique_resource
-        mbgl-vendor-vector-tile
-        mbgl-vendor-wagyu
-    PUBLIC
-        Mapbox::Base
-        Mapbox::Base::Extras::expected-lite
-        Mapbox::Base::Extras::rapidjson
-        Mapbox::Base::geojson.hpp
-        Mapbox::Base::geometry.hpp
-        Mapbox::Base::variant
-        unordered_dense
-)
+if(NOT MLN_DARWIN_WITH_BAZEL)
+    target_link_libraries(
+        mbgl-core
+        PRIVATE
+            Mapbox::Base::Extras::kdbush.hpp
+            Mapbox::Base::supercluster.hpp
+            Mapbox::Base::shelf-pack-cpp
+            Mapbox::Base::geojson-vt-cpp
+            Mapbox::Base::cheap-ruler-cpp
+            mbgl-compiler-options
+            mbgl-vendor-boost
+            mbgl-vendor-csscolorparser
+            mbgl-vendor-earcut.hpp
+            mbgl-vendor-eternal
+            mbgl-vendor-parsedate
+            mbgl-vendor-polylabel
+            mbgl-vendor-protozero
+            mbgl-vendor-unique_resource
+            mbgl-vendor-vector-tile
+            mbgl-vendor-wagyu
+        PUBLIC
+            Mapbox::Base
+            Mapbox::Base::Extras::expected-lite
+            Mapbox::Base::Extras::rapidjson
+            Mapbox::Base::geojson.hpp
+            Mapbox::Base::geometry.hpp
+            Mapbox::Base::variant
+            unordered_dense
+    )
+
+    export(TARGETS mbgl-core)
+else()
+    target_link_libraries(
+        mbgl-core
+        INTERFACE
+            Mapbox::Base
+            Mapbox::Base::Extras::expected-lite
+            Mapbox::Base::Extras::rapidjson
+            Mapbox::Base::geojson.hpp
+            Mapbox::Base::geometry.hpp
+            Mapbox::Base::variant
+            mbgl-vendor-boost
+            mbgl-vendor-csscolorparser
+            mbgl-vendor-earcut.hpp
+            mbgl-vendor-eternal
+            mbgl-vendor-parsedate
+            mbgl-vendor-polylabel
+            mbgl-vendor-protozero
+            mbgl-vendor-unique_resource
+            mbgl-vendor-vector-tile
+            mbgl-vendor-wagyu
+    )
+endif()
 
 export(TARGETS
-    mbgl-core
-
     mapbox-base
     mapbox-base-cheap-ruler-cpp
     mapbox-base-extras-expected-lite
@@ -1437,6 +1511,8 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL Android)
     include(${PROJECT_SOURCE_DIR}/platform/android/android.cmake)
 elseif(CMAKE_SYSTEM_NAME STREQUAL Linux)
     include(${PROJECT_SOURCE_DIR}/platform/linux/linux.cmake)
+elseif(CMAKE_SYSTEM_NAME STREQUAL Darwin)
+    include(${PROJECT_SOURCE_DIR}/platform/macos/macos.cmake)
 elseif(WIN32)
     include(${PROJECT_SOURCE_DIR}/platform/windows/windows.cmake)
 else()
