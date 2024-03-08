@@ -1,0 +1,12 @@
+load("@build_bazel_rules_apple//apple:macos.bzl", "macos_command_line_application")
+
+# macos_command_line_application(
+#     name = "glfw",
+#     minimum_os_version = "13.0",
+#     minimum_deployment_os_version = "13.0",
+#     deps = [
+#         "//platform:macos-objcpp",
+#         "glfw-cpp",
+#     ],
+#     visibility = ["//visibility:public"],
+# )

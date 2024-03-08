@@ -74,7 +74,7 @@ cc_library(
             "src/mbgl/util/timer.cpp",
             "src/mbgl/util/webp_reader.cpp",
         ],
-        "@platforms//os:ios": [],
+        "//conditions:default": [],
     }),
     hdrs = [
         "include/mbgl/gfx/headless_backend.hpp",
@@ -93,6 +93,21 @@ cc_library(
         "//conditions:default": ["include/mbgl/gl/headless_backend.hpp"],
     }),
     copts = CPP_FLAGS + MAPLIBRE_FLAGS,
+    linkopts = select({
+        "@platforms//os:macos": [
+            "-lsqlite3",
+            "-luv",
+            "-lz",
+            "-lcurl",
+            "-lpng",
+            "-ljpeg",
+            "-lwebp",
+            "-licuuc ",
+            "-licui18n",
+            "-licudata",
+        ],
+        "//conditions:default": [],
+    }),
     includes = [
         "include",
     ],
@@ -112,6 +127,10 @@ cc_library(
         ],
         "@platforms//os:linux": [
             "default-collator",
+        ],
+        "@platforms//os:osx": [
+            "//platform/darwin:darwin-loop",
+            ":default-collator",
         ],
     }),
 )

@@ -61,7 +61,23 @@ target_include_directories(
 # Use target_link_directories when we move away from CMake 3.10.
 target_link_libraries(
     mbgl-glfw
-    PRIVATE $<$<BOOL:${GLFW_LIBRARY_DIRS}>:-L${GLFW_LIBRARY_DIRS}>
+    PRIVATE
+        $<$<BOOL:${GLFW_LIBRARY_DIRS}>:-L${GLFW_LIBRARY_DIRS}>
+        "-framework Metal"
+        "-framework MetalKit"
+        "-framework Foundation"
+        "-framework AppKit"
+        "-framework CoreGraphics"
+        "-framework CoreLocation"
+        "-framework SystemConfiguration"
+        sqlite3
+        z
+        ${MLN_CORE_PUBLIC_DEPS}
+        mbgl-core
+        #mbgl-macos-default
+        mbgl-macos-objcpp
+        #mbgl-macos-objc
+
 )
 
 if(WIN32)
@@ -92,7 +108,7 @@ target_link_libraries(
         Mapbox::Base::Extras::args
         Mapbox::Base::Extras::filesystem
         Mapbox::Base::Extras::rapidjson
-        Mapbox::Map
+        mbgl-core
         mbgl-compiler-options
         Mapbox::Base::cheap-ruler-cpp
 )

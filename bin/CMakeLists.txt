@@ -12,6 +12,15 @@ target_link_libraries(
         mbgl-core
 )
 
+target_link_options(mbgl-cache PRIVATE
+    /Users/mwilsnd/git/maplibre-gl-native/bazel-out/darwin-dbg/bin/libmbgl-core.a
+    /Users/mwilsnd/git/maplibre-gl-native/bazel-out/darwin-dbg/bin/platform/default/libmbgl-default.a
+    /Users/mwilsnd/git/maplibre-gl-native/bazel-out/darwin-dbg/bin/platform/default/libdefault-collator.a
+    /Users/mwilsnd/git/maplibre-gl-native/bazel-out/applebin_macos-darwin_x86_64-dbg-ST-cfb676c6944e/bin/platform/libmacos-objcpp.a
+    /Users/mwilsnd/git/maplibre-gl-native/bazel-out/applebin_macos-darwin_x86_64-dbg-ST-cfb676c6944e/bin/platform/libmacos-objc.a
+    /Users/mwilsnd/git/maplibre-gl-native/bazel-out/darwin-dbg/bin/vendor/libnunicode.a
+)
+
 add_executable(
     mbgl-offline
     ${PROJECT_SOURCE_DIR}/bin/offline.cpp

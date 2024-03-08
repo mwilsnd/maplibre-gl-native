@@ -30,7 +30,7 @@ objc_library(
             "*.h",
         ],
     ),
-    copts = CPP_FLAGS + MAPLIBRE_FLAGS + WARNING_FLAGS["ios"],
+    copts = CPP_FLAGS + MAPLIBRE_FLAGS,
     deps = [
         "//platform:ios-sdk",
     ],

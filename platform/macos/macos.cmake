@@ -4,67 +4,113 @@ include(${PROJECT_SOURCE_DIR}/vendor/icu.cmake)
 
 message(STATUS "MacOS minimum target: ${CMAKE_OSX_DEPLOYMENT_TARGET}")
 
-function(external_bazel_target _NAME _FILE _BZL_TARGET)
-    add_library(_NAME STATIC IMPORTED GLOBAL)
-    set_target_properties(
-        _NAME PROPERTIES
-        IMPORTED_LOCATION _FILE
-    )
-    add_custom_command(
-        TARGET mbgl-core-bazel-gen
-        PRE_BUILD
-        COMMAND bazelisk build _BZL_TARGET --compilation_mode=dbg --//:renderer=metal
-            --//:maplibre_platform=ios --macos_minimum_os=${CMAKE_OSX_DEPLOYMENT_TARGET}
-    )
-endfunction()
+link_libraries(sqlite3 z mbgl-vendor-csscolorparser mbgl-core mbgl-macos-default mbgl-macos-objc mbgl-macos-objcpp)
+
+external_bazel_target(
+    boost
+    //vendor:boost # Bazel target
+    dbg # Build Mode: dbg, opt
+    OFF # Shared library, OFF = STATIC
+)
+external_bazel_target(
+    csscolorparser
+    //vendor:csscolorparser # Bazel target
+    dbg # Build Mode: dbg, opt
+    OFF # Shared library, OFF = STATIC
+)
+external_bazel_target(
+    "earcut.hpp"
+    "//vendor:earcut.hpp" # Bazel target
+    dbg # Build Mode: dbg, opt
+    OFF # Shared library, OFF = STATIC
+)
+external_bazel_target(
+    bzl-mapbox-base
+    //vendor:mapbox-base # Bazel target
+    dbg # Build Mode: dbg, opt
+    OFF # Shared library, OFF = STATIC
+)
+external_bazel_target(
+    parsedate
+    //vendor:parsedate # Bazel target
+    dbg # Build Mode: dbg, opt
+    OFF # Shared library, OFF = STATIC
+)
+external_bazel_target(
+    polylabel
+    //vendor:polylabel # Bazel target
+    dbg # Build Mode: dbg, opt
+    OFF # Shared library, OFF = STATIC
+)
+external_bazel_target(
+    unique_resource
+    //vendor:unique_resource # Bazel target
+    dbg # Build Mode: dbg, opt
+    OFF # Shared library, OFF = STATIC
+)
+external_bazel_target(
+    vector-tile
+    //vendor:vector-tile # Bazel target
+    dbg # Build Mode: dbg, opt
+    OFF # Shared library, OFF = STATIC
+)
+external_bazel_target(
+    wagyu
+    //vendor:wagyu # Bazel target
+    dbg # Build Mode: dbg, opt
+    OFF # Shared library, OFF = STATIC
+)
+external_bazel_target(
+    icu
+    //vendor:icu # Bazel target
+    dbg # Build Mode: dbg, opt
+    OFF # Shared library, OFF = STATIC
+)
+external_bazel_target(
+    nunicode
+    //vendor:nunicode # Bazel target
+    dbg # Build Mode: dbg, opt
+    OFF # Shared library, OFF = STATIC
+)
+
+
+
+
+
+external_bazel_target(
+    mbgl-macos-default-collator
+    //platform/default:default-collator # Bazel target
+    dbg # Build Mode: dbg, opt
+    OFF # Shared library, OFF = STATIC
+)
 
 external_bazel_target(
     mbgl-macos-default
-    ${MLN_CMAKE_BAZEL_LIB_ROOT}/platform/default/libmbgl-default.a
-    //platform/default:mbgl-default
+    //platform/default:mbgl-default # Bazel target
+    dbg # Build Mode: dbg, opt
+    OFF # Shared library, OFF = STATIC
 )
 
-add_library(mbgl-macos-objcpp STATIC IMPORTED GLOBAL)
 set_target_properties(
-    mbgl-macos-objcpp PROPERTIES
-    IMPORTED_LOCATION ${MLN_CMAKE_BAZEL_BIN_ROOT}/platform/libmacos-objcpp.a
-)
-add_custom_command(
-    TARGET mbgl-core-bazel-gen
-    PRE_BUILD
-    COMMAND bazelisk build //platform:macos-objcpp --compilation_mode=dbg --//:renderer=metal
-        --//:maplibre_platform=ios --macos_minimum_os=${CMAKE_OSX_DEPLOYMENT_TARGET}
+    mbgl-macos-default
+    PROPERTIES INTERFACE_INCLUDE_DIRECTORIES
+        ${PROJECT_SOURCE_DIR}/platform/default/include
 )
 
-add_library(mbgl-macos-objc STATIC IMPORTED GLOBAL)
-set_target_properties(
-    mbgl-macos-objc PROPERTIES
-    IMPORTED_LOCATION ${MLN_CMAKE_BAZEL_BIN_ROOT}/platform/libmacos-objc.a
-)
-add_custom_command(
-    TARGET mbgl-core-bazel-gen
-    PRE_BUILD
-    COMMAND bazelisk build //platform:macos-objc --compilation_mode=dbg --//:renderer=metal
-        --//:maplibre_platform=ios --macos_minimum_os=${CMAKE_OSX_DEPLOYMENT_TARGET}
+external_bazel_target(
+    mbgl-macos-objcpp
+    //platform:macos-objcpp # Bazel target
+    dbg # Build Mode: dbg, opt
+    OFF # Shared library, OFF = STATIC
 )
 
-target_link_libraries(
-    mbgl-core
-    INTERFACE
-        mbgl-macos-objcpp
-        mbgl-macos-objc
-        mbgl-macos-default
-        "-framework Metal"
-        "-framework MetalKit"
-        "-framework Foundation"
-        "-framework AppKit"
-        "-framework CoreGraphics"
-        "-framework CoreLocation"
-        "-framework SystemConfiguration"
-        mbgl-vendor-icu
-        sqlite3
-        z
+external_bazel_target(
+    mbgl-macos-objc
+    //platform:macos-objc # Bazel target
+    dbg # Build Mode: dbg, opt
+    OFF # Shared library, OFF = STATIC
 )
+
 
 add_subdirectory(${PROJECT_SOURCE_DIR}/bin)
 add_subdirectory(${PROJECT_SOURCE_DIR}/expression-test)
@@ -73,10 +119,11 @@ if(MLN_WITH_NODE)
     add_subdirectory(${PROJECT_SOURCE_DIR}/platform/node)
 endif()
 
-# add_executable(
-#     mbgl-test-runner
-#     ${PROJECT_SOURCE_DIR}/platform/default/src/mbgl/test/main.cpp
-# )
+add_executable(
+    mbgl-test-runner
+    ${PROJECT_SOURCE_DIR}/platform/default/src/mbgl/test/main.cpp
+)
+
 # 
 # target_include_directories(
 #     mbgl-test-runner

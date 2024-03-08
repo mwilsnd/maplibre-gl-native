@@ -23,7 +23,7 @@ objc_library(
         "CoreGraphics",
         "CoreLocation",
     ],
-    copts = CPP_FLAGS + MAPLIBRE_FLAGS + WARNING_FLAGS["ios"] + [
+    copts = CPP_FLAGS + MAPLIBRE_FLAGS + [
         "-fcxx-modules",
         "-fmodules",
         "-Wno-vla-extension",
@@ -48,7 +48,10 @@ objc_library(
         "//platform/darwin:darwin_objc_hdrs",
         "//platform/darwin:darwin_private_hdrs",
     ],
-    copts = WARNING_FLAGS["ios"] + MAPLIBRE_FLAGS + [
+    copts = select({
+        "@platforms//os:ios": WARNING_FLAGS["ios"],
+        "@platforms//os:macos": WARNING_FLAGS["macos"],
+     }) + MAPLIBRE_FLAGS + [
         "-fmodules",
     ],
     includes = [
@@ -131,7 +134,10 @@ objc_library(
     hdrs = [
         "//platform/darwin:include/mbgl/util/image+MLNAdditions.hpp",
     ],
-    copts = WARNING_FLAGS["ios"] + MAPLIBRE_FLAGS + [
+    copts = select({
+        "@platforms//os:ios":  WARNING_FLAGS["ios"],
+        "@platforms//os:macos": WARNING_FLAGS["macos"],
+     }) + MAPLIBRE_FLAGS + [
         "-fmodules",
         "-Wno-gnu-zero-variadic-macro-arguments",
         "-Wno-variadic-macros",
@@ -309,4 +315,85 @@ js_binary(
         "//platform/macos:symbols-to-check",
     ],
     entry_point = "scripts/check-public-symbols.js",
-)
+)   
+
+# cc_library(
+#     name = "glfw-cpp",
+#     srcs = [
+#         "glfw/main.cpp",
+#         "glfw/glfw_view.cpp",
+#         "glfw/glfw_renderer_frontend.cpp",
+#         "glfw/settings_json.cpp",
+#         "glfw/test_writer.cpp",
+#         "default/src/mbgl/map/map_snapshotter.cpp",
+#     ]
+#     hdrs = MLN_CORE_HEADERS + select({
+#         ":drawable_renderer": MLN_OPENGL_HEADERS + MLN_DRAWABLES_HEADERS + MLN_DRAWABLES_GL_HEADERS,
+#         ":legacy_renderer": MLN_OPENGL_HEADERS,
+#         ":metal_renderer": MLN_DRAWABLES_HEADERS + MLN_DRAWABLES_MTL_HEADERS,
+#         "//conditions:default": [],
+#     }),
+#     copts = CPP_FLAGS + MAPLIBRE_FLAGS,
+#     defines = select({
+#         ":legacy_renderer": [
+#             "MLN_RENDER_BACKEND_OPENGL=1",
+#             "MLN_LEGACY_RENDERER=1",
+#             "MLN_DRAWABLE_RENDERER=0",
+#         ],
+#         ":drawable_renderer": [
+#             "MLN_RENDER_BACKEND_OPENGL=1",
+#             "MLN_LEGACY_RENDERER=0",
+#             "MLN_DRAWABLE_RENDERER=1",
+#         ],
+#         ":metal_renderer": [
+#             "MLN_RENDER_BACKEND_METAL=1",
+#             "MLN_LEGACY_RENDERER=0",
+#             "MLN_DRAWABLE_RENDERER=1",
+#         ],
+#     }) + select({
+#         "@platforms//os:ios": ["GLES_SILENCE_DEPRECATION=1"],
+#         "//conditions:default": [],
+#     }),
+#     includes = [
+#         "include",
+#         "src",
+#     ] + select({
+#         ":metal_renderer": [
+#             "vendor/metal-cpp",
+#         ],
+#         "//conditions:default": [],
+#     }),
+#     local_defines = [
+#         r"MLN_VERSION_REV=\"standalone\"",
+#     ],
+#     visibility = ["//visibility:public"],
+#     deps = [
+#         ":mbgl-core-generated-private-artifacts",
+#         ":mbgl-core-generated-public-artifacts",
+#         "//vendor:boost",
+#         "//vendor:csscolorparser",
+#         "//vendor:earcut.hpp",
+#         "//vendor:eternal",
+#         "//vendor:mapbox-base",
+#         "//vendor:parsedate",
+#         "//vendor:polylabel",
+#         "//vendor:protozero",
+#         "//vendor:unique_resource",
+#         "//vendor:unordered_dense",
+#         "//vendor:vector-tile",
+#         "//vendor:wagyu",
+#     ] + select({
+#         "@platforms//os:ios": [
+#             "//vendor:icu",
+#         ],
+#         "@platforms//os:osx": [
+#             "//vendor:icu",
+#         ],
+#         "//conditions:default": [],
+#     }) + select({
+#         ":metal_renderer": [
+#             "//vendor:metal-cpp",
+#         ],
+#         "//conditions:default": [],
+#     }),
+# )
