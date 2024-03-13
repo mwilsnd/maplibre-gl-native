@@ -710,6 +710,7 @@ MLN_CORE_HEADERS = [
     "include/mbgl/renderer/renderer_observer.hpp",
     "include/mbgl/renderer/renderer_state.hpp",
     "include/mbgl/storage/database_file_source.hpp",
+    "include/mbgl/storage/delegate_file_source.hpp",
     "include/mbgl/storage/file_source.hpp",
     "include/mbgl/storage/file_source_manager.hpp",
     "include/mbgl/storage/network_status.hpp",

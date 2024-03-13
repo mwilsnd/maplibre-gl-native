@@ -1,5 +1,6 @@
 #include <mbgl/storage/asset_file_source.hpp>
 #include <mbgl/storage/database_file_source.hpp>
+#include <mbgl/storage/delegate_file_source.hpp>
 #include <mbgl/storage/file_source_manager.hpp>
 #include <mbgl/storage/local_file_source.hpp>
 #include <mbgl/storage/main_resource_loader.hpp>
@@ -41,6 +42,11 @@ public:
                                   [](const ResourceOptions& resourceOptions, const ClientOptions& clientOptions) {
                                       return std::make_unique<OnlineFileSource>(resourceOptions, clientOptions);
                                   });
+        
+        registerFileSourceFactory(FileSourceType::Delegate,
+                                  [](const ResourceOptions& resourceOptions, const ClientOptions& clientOptions) {
+                                      return std::make_unique<DelegateFileSource>(resourceOptions, clientOptions);
+                                  });)
     }
 };
 
