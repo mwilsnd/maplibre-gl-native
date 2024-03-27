@@ -14,6 +14,10 @@ public:
     swapchain(NS::TransferPtr(CA::MetalLayer::layer()))
     {
         swapchain->setDevice(backend.getDevice().get());
+        // Default size to something sane.
+        size = mbgl::Size{
+            static_cast<uint32_t>(swapchain->drawableSize().width),
+            static_cast<uint32_t>(swapchain->drawableSize().height)};
     }
     
     void setBackendSize(mbgl::Size size_) {
@@ -28,10 +32,6 @@ public:
     
     void bind() override {
         surface = NS::TransferPtr(swapchain->nextDrawable());
-        auto texSize = mbgl::Size{
-            static_cast<uint32_t>(swapchain->drawableSize().width),
-            static_cast<uint32_t>(swapchain->drawableSize().height)};
-        
         commandBuffer = NS::TransferPtr(commandQueue->commandBuffer());
         renderPassDescriptor = NS::TransferPtr(MTL::RenderPassDescriptor::renderPassDescriptor());
         renderPassDescriptor->colorAttachments()->object(0)->setTexture(surface->texture());
@@ -39,7 +39,7 @@ public:
         if (buffersInvalid || !depthTexture || !stencilTexture) {
             buffersInvalid = false;
             depthTexture = rendererBackend.getContext().createTexture2D();
-            depthTexture->setSize(texSize);
+            depthTexture->setSize(size);
             depthTexture->setFormat(gfx::TexturePixelType::Depth, gfx::TextureChannelDataType::Float);
             depthTexture->setSamplerConfiguration(
                                                   {gfx::TextureFilterType::Linear, gfx::TextureWrapType::Clamp, gfx::TextureWrapType::Clamp});
@@ -47,7 +47,7 @@ public:
                                                                        MTL::TextureUsageShaderRead | MTL::TextureUsageShaderWrite | MTL::TextureUsageRenderTarget);
             
             stencilTexture = rendererBackend.getContext().createTexture2D();
-            stencilTexture->setSize(texSize);
+            stencilTexture->setSize(size);
             stencilTexture->setFormat(gfx::TexturePixelType::Stencil, gfx::TextureChannelDataType::UnsignedByte);
             stencilTexture->setSamplerConfiguration(
                                                     {gfx::TextureFilterType::Linear, gfx::TextureWrapType::Clamp, gfx::TextureWrapType::Clamp});
