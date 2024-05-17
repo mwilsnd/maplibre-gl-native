@@ -443,7 +443,7 @@ class NativeMapViewTest : AppCenter() {
             // no-op
         }
         
-        override fun waitForEmpty(timeoutMillis: Long): Long {
+        override fun waitForEmpty() {
             // no-op
             return 0
         }

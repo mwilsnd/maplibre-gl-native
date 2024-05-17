@@ -9,8 +9,8 @@ namespace mbgl {
 using namespace style;
 
 RenderRasterSource::RenderRasterSource(Immutable<style::RasterSource::Impl> impl_,
-                                       std::shared_ptr<Scheduler> threadPool_)
-    : RenderTileSetSource(std::move(impl_), std::move(threadPool_)) {}
+                                       const TaggedScheduler& threadPool_)
+    : RenderTileSetSource(std::move(impl_), threadPool_) {}
 
 inline const style::RasterSource::Impl& RenderRasterSource::impl() const {
     return static_cast<const style::RasterSource::Impl&>(*baseImpl);

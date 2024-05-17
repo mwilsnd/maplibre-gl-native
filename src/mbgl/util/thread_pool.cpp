@@ -14,10 +14,7 @@ void ThreadedSchedulerBase::terminate() {
     // Run any leftover render jobs
     runRenderJobs();
 
-    {
-        std::lock_guard<std::mutex> lock(mutex);
-        terminated = true;
-    }
+    terminated = true;
 
     // Wake up all threads so that they shut down
     cvAvailable.notify_all();
@@ -36,49 +33,54 @@ std::thread ThreadedSchedulerBase::makeSchedulerThread(size_t index) {
 
         owningThreadPool.set(this);
 
-        while (true) {
-            std::unique_lock<std::mutex> lock(mutex);
-            if (queue.empty() && !pendingItems) {
-                cvEmpty.notify_all();
+        while (!terminated) {
+            std::vector<std::shared_ptr<Queue>> pending;
+            bool didWork = false;
+
+            {
+                // 1. Gather buckets for us to visit this iteration
+                std::shared_lock<std::shared_mutex> lock(taggedQueueLock);
+                for (auto& [tag, q] : taggedQueue) {
+                    pending.push_back(q);
+                }
             }
 
-            cvAvailable.wait(lock, [this] { return !queue.empty() || terminated; });
+            // 2. Visit a task from each
+            for (auto q : pending) {
+                std::function<void()> tasklet;
 
-            if (terminated) {
-                platform::detachThread();
-                return;
-            }
+                {
+                    std::unique_lock<std::mutex> lock(q->lock);
+                    if (q->queue.size()) {
+                        tasklet = std::move(q->queue.front());
+                        q->queue.pop();
+                    }
+                    if (!tasklet) continue;
+                }
 
-            auto function = std::move(queue.front());
-            queue.pop();
+                q->runningCount++;
 
-            if (function) {
-                pendingItems++;
-            }
-
-            lock.unlock();
-
-            if (function) {
                 try {
-                    function();
+                    didWork = true;
+                    tasklet();
 
                     // destroy the function and release its captures before unblocking `waitForEmpty`
-                    function = {};
-                    if (!--pendingItems) {
-                        std::unique_lock<std::mutex> inner_lock(mutex);
-                        if (queue.empty()) {
-                            cvEmpty.notify_all();
+                    tasklet = {};
+                    if (!--q->runningCount) {
+                        std::unique_lock<std::mutex> lock(q->lock);
+                        if (q->queue.empty()) {
+                            q->cv.notify_all();
                         }
                     }
                 } catch (...) {
-                    std::unique_lock<std::mutex> inner_lock(mutex);
+                    std::unique_lock<std::mutex> lock(q->lock);
                     if (handler) {
                         handler(std::current_exception());
                     }
 
-                    function = {};
-                    if (!--pendingItems && queue.empty()) {
-                        cvEmpty.notify_all();
+                    tasklet = {};
+                    if (!--q->runningCount && q->queue.empty()) {
+                        q->cv.notify_all();
                     }
 
                     if (handler) {
@@ -87,52 +89,76 @@ std::thread ThreadedSchedulerBase::makeSchedulerThread(size_t index) {
                     throw;
                 }
             }
+
+            if (!didWork) {
+                std::unique_lock<std::mutex> conditionLock(workerMutex);
+                cvAvailable.wait(conditionLock);
+            }
         }
+
+        platform::detachThread();
     });
 }
 
 void ThreadedSchedulerBase::schedule(std::function<void()>&& fn) {
-    assert(fn);
-    if (fn) {
-        {
-            // We need to block if adding adding a new task from a thread not controlled by this
-            // pool.  Tasks are added by other tasks, so we must not block a thread we do control
-            // or `waitForEmpty` will deadlock.
-            std::unique_lock<std::mutex> addLock(addMutex, std::defer_lock);
-            if (!thisThreadIsOwned()) {
-                addLock.lock();
-            }
-            std::lock_guard<std::mutex> lock(mutex);
-            queue.push(std::move(fn));
-        }
-        cvAvailable.notify_one();
-    }
+    schedule(static_cast<const void*>(this), std::move(fn));
 }
 
-std::size_t ThreadedSchedulerBase::waitForEmpty(Milliseconds timeout) {
+void ThreadedSchedulerBase::schedule(const void* tag, std::function<void()>&& fn) {
+    assert(fn);
+    if (!fn) return;
+
+    decltype(taggedQueue)::const_iterator it;
+    std::shared_ptr<Queue> q;
+
+    {
+        std::unique_lock<std::shared_mutex> lock(taggedQueueLock);
+        it = taggedQueue.find(tag);
+        if (it == taggedQueue.end()) {
+            q = std::make_shared<Queue>();
+            taggedQueue.insert({tag, q});
+        } else {
+            q = it->second;
+        }
+    }
+
+    {
+        std::unique_lock<std::mutex> lock(q->lock);
+        q->queue.push(std::move(fn));
+    }
+
+    cvAvailable.notify_one();
+}
+
+void ThreadedSchedulerBase::waitForEmpty(const void* tag = nullptr) {
     // Must not be called from a thread in our pool, or we would deadlock
     assert(!thisThreadIsOwned());
     if (!thisThreadIsOwned()) {
-        const auto startTime = util::MonotonicTimer::now();
-        const auto isDone = [&] {
-            return queue.empty() && pendingItems == 0;
-        };
-        // Block any other threads from adding new items
-        std::scoped_lock<std::mutex> addLock(addMutex);
-        std::unique_lock<std::mutex> lock(mutex);
-        while (!isDone()) {
-            if (timeout > Milliseconds::zero()) {
-                const auto elapsed = util::MonotonicTimer::now() - startTime;
-                if (timeout <= elapsed || !cvEmpty.wait_for(lock, timeout - elapsed, isDone)) {
-                    break;
-                }
-            } else {
-                cvEmpty.wait(lock, isDone);
-            }
+        if (!tag) {
+            tag = static_cast<const void*>(this);
         }
-        return queue.size() + pendingItems;
+
+        decltype(taggedQueue)::const_iterator it;
+        std::shared_ptr<Queue> q;
+        {
+            std::shared_lock<std::shared_mutex> lock(taggedQueueLock);
+            it = taggedQueue.find(tag);
+            if (it == taggedQueue.end()) {
+                return;
+            }
+            q = it->second;
+        }
+
+        std::unique_lock<std::mutex> lock(q->lock);
+        while (q->queue.size() + q->runningCount) {
+            q->cv.wait(lock);
+        }
+
+        // After waiting for the queue to empty, go ahead and erase it from the map.
+        taggedQueue.erase(tag);
     }
-    return 0;
+
+    return;
 }
 
 } // namespace mbgl
