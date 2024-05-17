@@ -78,7 +78,8 @@ public:
                 0};
     };
 
-    SourceTest() : threadPool(Scheduler::GetBackground(), this) {
+    SourceTest()
+        : threadPool(Scheduler::GetBackground(), this) {
         // Squelch logging.
         Log::setObserver(std::make_unique<Log::NullObserver>());
 
