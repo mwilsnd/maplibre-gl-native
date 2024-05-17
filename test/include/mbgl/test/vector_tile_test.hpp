@@ -39,7 +39,8 @@ public:
                                   glyphManager,
                                   0};
 
-    VectorTileTest() : threadPool(Scheduler::GetBackground(), this) {}
+    VectorTileTest()
+        : threadPool(Scheduler::GetBackground(), this) {}
 
     ~VectorTileTest() {
         // Ensure that deferred releases are complete before cleaning up
