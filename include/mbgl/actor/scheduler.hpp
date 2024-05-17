@@ -71,7 +71,7 @@ public:
 
     /// Wait until there's nothing pending or in process
     /// Must not be called from a task provided to this scheduler.
-    virtual void waitForEmpty(const void*) = 0;
+    virtual void waitForEmpty(const void* tag = nullptr) = 0;
 
     /// Set/Get the current Scheduler for this thread
     static Scheduler* GetCurrent();
