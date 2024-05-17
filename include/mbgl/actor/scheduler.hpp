@@ -121,20 +121,22 @@ protected:
 /// are bucketed with the tag address to enable queries on tasks related to that tag. This allows multiple map
 /// instances to all use the same scheduler and await processing of all their tasks prior to map deletion.
 class TaggedScheduler {
-    public:
-        TaggedScheduler() = delete;
-        TaggedScheduler(std::shared_ptr<Scheduler> scheduler_, const void* tagAddr_) : scheduler(std::move(scheduler_)), tagAddr(tagAddr_) {}
+public:
+    TaggedScheduler() = delete;
+    TaggedScheduler(std::shared_ptr<Scheduler> scheduler_, const void* tagAddr_)
+        : scheduler(std::move(scheduler_)),
+          tagAddr(tagAddr_) {}
 
-        /// @brief Get the wrapped scheduler
-        /// @return 
-        const std::shared_ptr<Scheduler>& get() const noexcept { return scheduler; }
-        
-        void schedule(std::function<void()>&& fn) { scheduler->schedule(tagAddr, std::move(fn)); }
-        void waitForEmpty() const noexcept { scheduler->waitForEmpty(tagAddr); }
+    /// @brief Get the wrapped scheduler
+    /// @return
+    const std::shared_ptr<Scheduler>& get() const noexcept { return scheduler; }
 
-    private:
-        std::shared_ptr<Scheduler> scheduler;
-        const void* tagAddr;
+    void schedule(std::function<void()>&& fn) { scheduler->schedule(tagAddr, std::move(fn)); }
+    void waitForEmpty() const noexcept { scheduler->waitForEmpty(tagAddr); }
+
+private:
+    std::shared_ptr<Scheduler> scheduler;
+    const void* tagAddr;
 };
 
 } // namespace mbgl

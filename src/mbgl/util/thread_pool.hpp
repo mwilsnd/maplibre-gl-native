@@ -42,9 +42,9 @@ protected:
 
     // Task queues bucketed by tag address
     struct Queue {
-        std::atomic<std::size_t> runningCount; /* running tasks */
-        std::condition_variable cv; /* queue empty condition */
-        std::mutex lock; /* lock */
+        std::atomic<std::size_t> runningCount;   /* running tasks */
+        std::condition_variable cv;              /* queue empty condition */
+        std::mutex lock;                         /* lock */
         std::queue<std::function<void()>> queue; /* pending task queue */
     };
     std::map<const void*, std::shared_ptr<Queue>> taggedQueue;
