@@ -445,7 +445,6 @@ class NativeMapViewTest : AppCenter() {
         
         override fun waitForEmpty() {
             // no-op
-            return 0
         }
     }
 }

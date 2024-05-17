@@ -46,7 +46,7 @@ std::thread ThreadedSchedulerBase::makeSchedulerThread(size_t index) {
             }
 
             // 2. Visit a task from each
-            for (auto q : pending) {
+            for (auto& q : pending) {
                 std::function<void()> tasklet;
 
                 {
@@ -157,8 +157,6 @@ void ThreadedSchedulerBase::waitForEmpty(const void* tag = nullptr) {
         // After waiting for the queue to empty, go ahead and erase it from the map.
         taggedQueue.erase(tag);
     }
-
-    return;
 }
 
 } // namespace mbgl
