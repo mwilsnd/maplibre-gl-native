@@ -14,7 +14,10 @@ void ThreadedSchedulerBase::terminate() {
     // Run any leftover render jobs
     runRenderJobs();
 
-    terminated = true;
+    {
+        std::unique_lock<std::mutex> lock(workerMutex);
+        terminated = true;
+    }
 
     // Wake up all threads so that they shut down
     cvAvailable.notify_all();

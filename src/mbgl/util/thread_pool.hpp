@@ -38,7 +38,7 @@ protected:
     std::mutex workerMutex;
     std::shared_mutex taggedQueueLock;
     util::ThreadLocal<ThreadedSchedulerBase> owningThreadPool;
-    std::atomic_bool terminated{false};
+    bool terminated{false};
 
     // Task queues bucketed by tag address
     struct Queue {
