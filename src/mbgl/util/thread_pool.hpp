@@ -36,7 +36,7 @@ protected:
     // Signal when an item is added to the queue
     std::condition_variable cvAvailable;
     std::mutex workerMutex;
-    std::shared_mutex taggedQueueLock;
+    std::mutex taggedQueueLock;
     util::ThreadLocal<ThreadedSchedulerBase> owningThreadPool;
     bool terminated{false};
 
@@ -47,7 +47,7 @@ protected:
         std::mutex lock;                         /* lock */
         std::queue<std::function<void()>> queue; /* pending task queue */
     };
-    std::map<const void*, std::shared_ptr<Queue>> taggedQueue;
+    std::unordered_map<const void*, std::shared_ptr<Queue>> taggedQueue;
 };
 
 /**
