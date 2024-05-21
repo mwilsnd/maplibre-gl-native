@@ -43,7 +43,7 @@ std::thread ThreadedSchedulerBase::makeSchedulerThread(size_t index) {
             {
                 // 1. Gather buckets for us to visit this iteration
                 std::shared_lock<std::shared_mutex> lock(taggedQueueLock);
-                for (auto& [tag, q] : taggedQueue) {
+                for (const auto& [tag, q] : taggedQueue) {
                     pending.push_back(q);
                 }
             }
@@ -95,7 +95,9 @@ std::thread ThreadedSchedulerBase::makeSchedulerThread(size_t index) {
 
             if (!didWork) {
                 std::unique_lock<std::mutex> conditionLock(workerMutex);
-                cvAvailable.wait(conditionLock);
+                if (!terminated) {
+                    cvAvailable.wait(conditionLock);
+                }
             }
         }
 
