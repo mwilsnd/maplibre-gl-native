@@ -122,7 +122,7 @@ RenderOrchestrator::RenderOrchestrator(bool backgroundLayerAsColor_, const std::
       layerImpls(makeMutable<std::vector<Immutable<style::Layer::Impl>>>()),
       renderLight(makeMutable<Light::Impl>()),
       backgroundLayerAsColor(backgroundLayerAsColor_),
-      threadPool(Scheduler::GetBackground()) {
+      threadPool(Scheduler::GetBackground(), static_cast<const void*>(this)) {
     glyphManager->setObserver(this);
     imageManager->setObserver(this);
 }
@@ -142,9 +142,7 @@ RenderOrchestrator::~RenderOrchestrator() {
     // Wait for any deferred cleanup tasks to complete before releasing and potentially
     // destroying the scheduler.  Those cleanup tasks must not hold the final reference
     // to the scheduler because it cannot be destroyed from one of its own pool threads.
-    constexpr auto deferredCleanupTimeout = Milliseconds{1000};
-    [[maybe_unused]] const auto remaining = threadPool->waitForEmpty(deferredCleanupTimeout);
-    assert(remaining == 0);
+    threadPool.waitForEmpty();
 }
 
 void RenderOrchestrator::setObserver(RendererObserver* observer_) {

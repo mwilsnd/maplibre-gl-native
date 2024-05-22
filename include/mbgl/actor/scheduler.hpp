@@ -39,6 +39,8 @@ public:
 
     /// Enqueues a function for execution.
     virtual void schedule(std::function<void()>&&) = 0;
+    virtual void schedule(const void*, std::function<void()>&&) = 0;
+
     /// Makes a weak pointer to this Scheduler.
     virtual mapbox::base::WeakPtr<Scheduler> makeWeakPtr() = 0;
     /// Enqueues a function for execution on the render thread.
@@ -69,8 +71,7 @@ public:
 
     /// Wait until there's nothing pending or in process
     /// Must not be called from a task provided to this scheduler.
-    /// @param timeout Time to wait, or zero to wait forever.
-    virtual std::size_t waitForEmpty(Milliseconds timeout = Milliseconds{0}) = 0;
+    virtual void waitForEmpty(const void* tag = nullptr) = 0;
 
     /// Set/Get the current Scheduler for this thread
     static Scheduler* GetCurrent();
@@ -114,6 +115,28 @@ protected:
     }
 
     std::function<void(const std::exception_ptr)> handler;
+};
+
+/// @brief A TaggedScheduler pairs a scheduler with a memory address. Tasklets submitted via a TaggedScheduler
+/// are bucketed with the tag address to enable queries on tasks related to that tag. This allows multiple map
+/// instances to all use the same scheduler and await processing of all their tasks prior to map deletion.
+class TaggedScheduler {
+public:
+    TaggedScheduler() = delete;
+    TaggedScheduler(std::shared_ptr<Scheduler> scheduler_, const void* tagAddr_)
+        : scheduler(std::move(scheduler_)),
+          tagAddr(tagAddr_) {}
+
+    /// @brief Get the wrapped scheduler
+    /// @return
+    const std::shared_ptr<Scheduler>& get() const noexcept { return scheduler; }
+
+    void schedule(std::function<void()>&& fn) { scheduler->schedule(tagAddr, std::move(fn)); }
+    void waitForEmpty() const noexcept { scheduler->waitForEmpty(tagAddr); }
+
+private:
+    std::shared_ptr<Scheduler> scheduler;
+    const void* tagAddr;
 };
 
 } // namespace mbgl
