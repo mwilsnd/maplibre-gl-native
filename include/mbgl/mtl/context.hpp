@@ -44,7 +44,7 @@ using UniqueVertexBufferResource = std::unique_ptr<VertexBufferResource>;
 
 class Context final : public gfx::Context {
 public:
-    Context(RendererBackend&);
+    Context(RendererBackend&, TaggedScheduler);
     ~Context() noexcept override;
     Context(const Context&) = delete;
     Context& operator=(const Context& other) = delete;
@@ -159,6 +159,7 @@ public:
 
 private:
     RendererBackend& backend;
+    TaggedScheduler& scheduler;
     bool cleanupOnDestruction = true;
 
     std::optional<BufferResource> emptyBuffer;

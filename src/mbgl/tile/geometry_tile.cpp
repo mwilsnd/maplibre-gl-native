@@ -156,14 +156,15 @@ const LayerRenderData* GeometryTileRenderData::getLayerRenderData(const style::L
    that could flag the tile as non-pending too early.
  */
 
-GeometryTile::GeometryTile(const OverscaledTileID& id_, std::string sourceID_, const TileParameters& parameters)
+GeometryTile::GeometryTile(const OverscaledTileID& id_, std::string sourceID_, const TileParameters& parameters, TaggedScheduler& scheduler)
     : Tile(Kind::Geometry, id_),
       ImageRequestor(parameters.imageManager),
       sourceID(std::move(sourceID_)),
-      threadPool(Scheduler::GetBackground()),
+      threadPool(scheduler),
       mailbox(std::make_shared<Mailbox>(*Scheduler::GetCurrent())),
-      worker(threadPool,
+      worker(threadPool, // TaggedScheduler reference for the Actor retainer
              ActorRef<GeometryTile>(*this, mailbox),
+             threadPool, // TaggedScheduler reference for the worker
              id_,
              sourceID,
              obsolete,
@@ -183,7 +184,7 @@ GeometryTile::~GeometryTile() {
     imageManager->removeRequestor(*this);
 
     if (layoutResult) {
-        threadPool->runOnRenderThread(
+        threadPool.runOnRenderThread(
             [layoutResult_{std::move(layoutResult)}, atlasTextures_{std::move(atlasTextures)}]() {});
     }
 }

@@ -86,19 +86,54 @@ public:
         }
     }
 
-    void runOnRenderThread(std::function<void()>&& fn) override {
-        std::lock_guard<std::mutex> lock(renderMutex);
-        renderThreadQueue.push(std::move(fn));
+    void runOnRenderThread(const void* tag, std::function<void()>&& fn) override {
+        std::shared_ptr<RenderQueue> queue;
+        {
+            std::lock_guard<std::mutex> lock(taggedRenderQueueLock);
+            auto it = taggedRenderQueue.find(tag);
+            if (it != taggedRenderQueue.end()) {
+                queue = it->second;
+            } else {
+                queue = std::make_shared<RenderQueue>();
+                taggedRenderQueue.insert({tag, queue});
+            }
+        }
+
+        std::lock_guard<std::mutex> lock(queue->mutex);
+        queue->queue.push(std::move(fn));
     }
 
-    void runRenderJobs() override {
-        std::lock_guard<std::mutex> lock(renderMutex);
-        while (renderThreadQueue.size()) {
-            auto fn = std::move(renderThreadQueue.front());
-            renderThreadQueue.pop();
+    void runRenderJobs(const void* tag, bool closeQueue = false) override {
+        std::shared_ptr<RenderQueue> queue;
+        std::unique_lock<std::mutex> lock(taggedRenderQueueLock);
+
+        {
+            auto it = taggedRenderQueue.find(tag);
+            if (it != taggedRenderQueue.end()) {
+                queue = it->second;
+            }
+
+            if (!closeQueue) {
+                lock.unlock();
+            }
+        }
+
+        if (!queue) {
+            return;
+        }
+
+        std::lock_guard<std::mutex> taskLock(queue->mutex);
+        while (queue->queue.size()) {
+            auto fn = std::move(queue->queue.front());
+            queue->queue.pop();
             if (fn) {
                 fn();
             }
+        }
+
+        if (closeQueue) {
+            // We hold both locks and can safely remove the queue entry
+            taggedRenderQueue.erase(tag);
         }
     }
 
@@ -108,8 +143,12 @@ private:
     std::vector<std::thread> threads;
     mapbox::base::WeakPtrFactory<Scheduler> weakFactory{this};
 
-    std::queue<std::function<void()>> renderThreadQueue;
-    std::mutex renderMutex;
+    struct RenderQueue {
+        std::queue<std::function<void()>> queue;
+        std::mutex mutex;
+    };
+    mbgl::unordered_map<const void*, std::shared_ptr<RenderQueue>> taggedRenderQueue;
+    std::mutex taggedRenderQueueLock;
 };
 
 class SequencedScheduler : public ThreadedScheduler {

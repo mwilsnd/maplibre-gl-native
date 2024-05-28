@@ -8,6 +8,7 @@
 namespace mbgl {
 
 class ProgramParameters;
+class Map;
 
 namespace gfx {
 
@@ -24,7 +25,7 @@ enum class ContextMode : bool {
 
 class RendererBackend {
 protected:
-    explicit RendererBackend(ContextMode);
+    explicit RendererBackend(ContextMode, mbgl::Map*);
 
 public:
     virtual ~RendererBackend();
@@ -69,6 +70,7 @@ protected:
 protected:
     std::unique_ptr<Context> context;
     const ContextMode contextMode;
+    const mbgl::Map* owner;
     std::once_flag initialized;
 
     friend class BackendScope;

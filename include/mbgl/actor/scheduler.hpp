@@ -43,10 +43,11 @@ public:
 
     /// Makes a weak pointer to this Scheduler.
     virtual mapbox::base::WeakPtr<Scheduler> makeWeakPtr() = 0;
-    /// Enqueues a function for execution on the render thread.
-    virtual void runOnRenderThread(std::function<void()>&&) {};
-    virtual void runRenderJobs() {}
-
+    /// Enqueues a function for execution on the render thread owned by the given tag.
+    virtual void runOnRenderThread(const void*, std::function<void()>&&) {}
+    /// Run render thread jobs for the given tag address
+    /// @param closeQueue Runs all render jobs and then removes the internal queue.
+    virtual void runRenderJobs(const void*, bool closeQueue = false) {}
     /// Returns a closure wrapping the given one.
     ///
     /// When the returned closure is invoked for the first time, it schedules
@@ -130,8 +131,11 @@ public:
     /// @brief Get the wrapped scheduler
     /// @return
     const std::shared_ptr<Scheduler>& get() const noexcept { return scheduler; }
+    const void* tag() const noexcept { return tagAddr; }
 
     void schedule(std::function<void()>&& fn) { scheduler->schedule(tagAddr, std::move(fn)); }
+    void runOnRenderThread(std::function<void()>&& fn) { scheduler->runOnRenderThread(tagAddr, std::move(fn)); }
+    void runRenderJobs(bool closeQueue = false) { scheduler->runRenderJobs(tagAddr, closeQueue); }
     void waitForEmpty() const noexcept { scheduler->waitForEmpty(tagAddr); }
 
 private:

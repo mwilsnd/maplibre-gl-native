@@ -28,7 +28,7 @@ class TileAtlasTextures;
 
 class GeometryTile : public Tile, public GlyphRequestor, public ImageRequestor {
 public:
-    GeometryTile(const OverscaledTileID&, std::string sourceID, const TileParameters&);
+    GeometryTile(const OverscaledTileID&, std::string sourceID, const TileParameters&, TaggedScheduler& scheduler);
 
     ~GeometryTile() override;
 
@@ -106,7 +106,7 @@ private:
     // Used to signal the worker that it should abandon parsing this tile as soon as possible.
     std::atomic<bool> obsolete{false};
 
-    const std::shared_ptr<Scheduler> threadPool;
+    TaggedScheduler threadPool;
 
     const std::shared_ptr<Mailbox> mailbox;
     Actor<GeometryTileWorker> worker;

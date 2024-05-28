@@ -72,9 +72,10 @@ GLint getMaxVertexAttribs() {
 }
 } // namespace
 
-Context::Context(RendererBackend& backend_)
+Context::Context(RendererBackend& backend_, TaggedScheduler scheduler_)
     : gfx::Context(/*maximumVertexBindingCount=*/getMaxVertexAttribs()),
-      backend(backend_) {
+      backend(backend_),
+      scheduler(std::move(scheduler_)) {
 #if MLN_DRAWABLE_RENDERER
     uboAllocator = std::make_unique<gl::UniformBufferAllocator>();
 #endif
@@ -82,7 +83,7 @@ Context::Context(RendererBackend& backend_)
 
 Context::~Context() noexcept {
     if (cleanupOnDestruction) {
-        Scheduler::GetBackground()->runRenderJobs();
+        scheduler.runRenderJobs(true /* closeQueue */);
 
         reset();
 #if !defined(NDEBUG)
@@ -93,7 +94,7 @@ Context::~Context() noexcept {
 }
 
 void Context::beginFrame() {
-    Scheduler::GetBackground()->runRenderJobs();
+    scheduler.runRenderJobs();
 
 #if MLN_DRAWABLE_RENDERER
     frameInFlightFence = std::make_shared<gl::Fence>();
