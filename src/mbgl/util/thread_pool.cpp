@@ -42,15 +42,14 @@ std::thread ThreadedSchedulerBase::makeSchedulerThread(size_t index) {
             if (!terminated && !didWork) {
                 cvAvailable.wait(conditionLock);
             }
-            
             if (terminated) {
                 platform::detachThread();
                 break;
             }
-            
+
             // Let other threads run
             conditionLock.unlock();
-            
+
             didWork = false;
             std::vector<std::shared_ptr<Queue>> pending;
             {
@@ -76,11 +75,13 @@ std::thread ThreadedSchedulerBase::makeSchedulerThread(size_t index) {
                 q->runningCount++;
 
                 try {
+                    // Indicate some processing was done this iteration. We'll try and do more work
+                    // on the following loop until we run out of work, at which point we wait.
                     didWork = true;
-                    tasklet();
 
-                    // destroy the function and release its captures before unblocking `waitForEmpty`
-                    tasklet = {};
+                    tasklet();
+                    tasklet = {}; // destroy the function and release its captures before unblocking `waitForEmpty`
+
                     if (!--q->runningCount) {
                         std::lock_guard<std::mutex> lock(q->lock);
                         if (q->queue.empty()) {
@@ -136,7 +137,7 @@ void ThreadedSchedulerBase::schedule(const void* tag, std::function<void()>&& fn
     cvAvailable.notify_one();
 }
 
-void ThreadedSchedulerBase::waitForEmpty(const void* tag = nullptr) {
+void ThreadedSchedulerBase::waitForEmpty(const void* tag) {
     // Must not be called from a thread in our pool, or we would deadlock
     assert(!thisThreadIsOwned());
     if (!thisThreadIsOwned()) {
@@ -154,9 +155,9 @@ void ThreadedSchedulerBase::waitForEmpty(const void* tag = nullptr) {
             q = it->second;
         }
 
-        std::unique_lock<std::mutex> lock(q->lock);
+        std::unique_lock<std::mutex> queueLock(q->lock);
         while (q->queue.size() + q->runningCount) {
-            q->cv.wait(lock);
+            q->cv.wait(queueLock);
         }
 
         // After waiting for the queue to empty, go ahead and erase it from the map.

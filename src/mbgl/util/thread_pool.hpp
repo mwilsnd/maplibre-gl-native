@@ -3,6 +3,7 @@
 #include <mbgl/actor/mailbox.hpp>
 #include <mbgl/actor/scheduler.hpp>
 #include <mbgl/util/thread_local.hpp>
+#include <mbgl/util/containers.hpp>
 
 #include <algorithm>
 #include <condition_variable>
@@ -16,8 +17,15 @@ namespace mbgl {
 
 class ThreadedSchedulerBase : public Scheduler {
 public:
-    void schedule(std::function<void()>&&) override;
-    void schedule(const void* tag, std::function<void()>&&) override;
+    /// @brief Schedule a generic task not assigned to any particular owner.
+    /// The scheduler itself will own the task.
+    /// @param fn Task to run
+    void schedule(std::function<void()>&& fn) override;
+
+    /// @brief Schedule a task assigned to the given owner `tag`.
+    /// @param tag Address of any object used to identify ownership of `fn`
+    /// @param fn Task to run
+    void schedule(const void* tag, std::function<void()>&& fn) override;
 
 protected:
     ThreadedSchedulerBase() = default;
@@ -26,9 +34,11 @@ protected:
     void terminate();
     std::thread makeSchedulerThread(size_t index);
 
-    /// Wait until there's nothing pending or in process
+    /// @brief Wait until there's nothing pending or in process
     /// Must not be called from a task provided to this scheduler.
-    void waitForEmpty(const void* tag) override;
+    /// @param tag Address of the owner identifying the collection of tasks to
+    // wait for. Waiting on nullptr waits on tasks owned by the scheduler.
+    void waitForEmpty(const void* tag = nullptr) override;
 
     /// Returns true if called from a thread managed by the scheduler
     bool thisThreadIsOwned() const { return owningThreadPool.get() == this; }
@@ -47,7 +57,7 @@ protected:
         std::mutex lock;                         /* lock */
         std::queue<std::function<void()>> queue; /* pending task queue */
     };
-    std::unordered_map<const void*, std::shared_ptr<Queue>> taggedQueue;
+    mbgl::unordered_map<const void*, std::shared_ptr<Queue>> taggedQueue;
 };
 
 /**
