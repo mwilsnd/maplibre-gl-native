@@ -3,9 +3,11 @@
 #include <mbgl/actor/mailbox.hpp>
 #include <mbgl/actor/scheduler.hpp>
 #include <mbgl/util/thread_local.hpp>
+#include <mbgl/util/containers.hpp>
 
 #include <algorithm>
 #include <condition_variable>
+#include <map>
 #include <mutex>
 #include <queue>
 #include <thread>
@@ -15,7 +17,15 @@ namespace mbgl {
 
 class ThreadedSchedulerBase : public Scheduler {
 public:
-    void schedule(std::function<void()>&&) override;
+    /// @brief Schedule a generic task not assigned to any particular owner.
+    /// The scheduler itself will own the task.
+    /// @param fn Task to run
+    void schedule(std::function<void()>&& fn) override;
+
+    /// @brief Schedule a task assigned to the given owner `tag`.
+    /// @param tag Address of any object used to identify ownership of `fn`
+    /// @param fn Task to run
+    void schedule(const void* tag, std::function<void()>&& fn) override;
 
 protected:
     ThreadedSchedulerBase() = default;
@@ -24,28 +34,30 @@ protected:
     void terminate();
     std::thread makeSchedulerThread(size_t index);
 
-    /// Wait until there's nothing pending or in process
+    /// @brief Wait until there's nothing pending or in process
     /// Must not be called from a task provided to this scheduler.
-    /// @param timeout Time to wait, or zero to wait forever.
-    std::size_t waitForEmpty(Milliseconds timeout) override;
+    /// @param tag Address of the owner identifying the collection of tasks to
+    // wait for. Waiting on nullptr waits on tasks owned by the scheduler.
+    void waitForEmpty(const void* tag = nullptr) override;
 
     /// Returns true if called from a thread managed by the scheduler
     bool thisThreadIsOwned() const { return owningThreadPool.get() == this; }
 
-    std::queue<std::function<void()>> queue;
-    // protects `queue`
-    std::mutex mutex;
-    // Used to block addition of new items while waiting
-    std::mutex addMutex;
     // Signal when an item is added to the queue
     std::condition_variable cvAvailable;
-    // Signal when the queue becomes empty
-    std::condition_variable cvEmpty;
-    // Count of functions removed from the queue but still executing
-    std::atomic<std::size_t> pendingItems{0};
-    // Points to the owning pool in owned threads
+    std::mutex workerMutex;
+    std::mutex taggedQueueLock;
     util::ThreadLocal<ThreadedSchedulerBase> owningThreadPool;
     bool terminated{false};
+
+    // Task queues bucketed by tag address
+    struct Queue {
+        std::atomic<std::size_t> runningCount;   /* running tasks */
+        std::condition_variable cv;              /* queue empty condition */
+        std::mutex lock;                         /* lock */
+        std::queue<std::function<void()>> queue; /* pending task queue */
+    };
+    mbgl::unordered_map<const void*, std::shared_ptr<Queue>> taggedQueue;
 };
 
 /**
