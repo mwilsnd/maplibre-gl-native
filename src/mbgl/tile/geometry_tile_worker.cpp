@@ -30,7 +30,7 @@ using namespace style;
 
 GeometryTileWorker::GeometryTileWorker(ActorRef<GeometryTileWorker> self_,
                                        ActorRef<GeometryTile> parent_,
-                                       TaggedScheduler& scheduler_,
+                                       const TaggedScheduler& scheduler_,
                                        OverscaledTileID id_,
                                        std::string sourceID_,
                                        const std::atomic<bool>& obsolete_,

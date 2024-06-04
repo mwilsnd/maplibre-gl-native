@@ -47,7 +47,7 @@ public:
     virtual void runOnRenderThread(const void*, std::function<void()>&&) {}
     /// Run render thread jobs for the given tag address
     /// @param closeQueue Runs all render jobs and then removes the internal queue.
-    virtual void runRenderJobs(const void*, bool closeQueue = false) {}
+    virtual void runRenderJobs(const void*, [[maybe_unused]] bool closeQueue = false) {}
     /// Returns a closure wrapping the given one.
     ///
     /// When the returned closure is invoked for the first time, it schedules
@@ -127,6 +127,7 @@ public:
     TaggedScheduler(std::shared_ptr<Scheduler> scheduler_, const void* tagAddr_)
         : scheduler(std::move(scheduler_)),
           tagAddr(tagAddr_) {}
+    TaggedScheduler(const TaggedScheduler&) = default;
 
     /// @brief Get the wrapped scheduler
     /// @return

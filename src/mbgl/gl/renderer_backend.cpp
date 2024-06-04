@@ -15,12 +15,11 @@
 namespace mbgl {
 namespace gl {
 
-RendererBackend::RendererBackend(const gfx::ContextMode contextMode_, mbgl::Map* map)
-    : gfx::RendererBackend(contextMode_, map) {}
+RendererBackend::RendererBackend(const gfx::ContextMode contextMode_)
+    : gfx::RendererBackend(contextMode_) {}
 
 std::unique_ptr<gfx::Context> RendererBackend::createContext() {
-    auto result = std::make_unique<gl::Context>(*this,
-        TaggedScheduler{Scheduler::GetBackground(), static_cast<const void*>(owner)});
+    auto result = std::make_unique<gl::Context>(*this); // Tagged background thread pool will be owned by the RendererBackend
     result->enableDebugging();
     result->initializeExtensions(std::bind(&RendererBackend::getExtensionFunctionPointer, this, std::placeholders::_1));
     return result;

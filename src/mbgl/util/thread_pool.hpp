@@ -141,7 +141,6 @@ public:
 
 private:
     std::vector<std::thread> threads;
-    mapbox::base::WeakPtrFactory<Scheduler> weakFactory{this};
 
     struct RenderQueue {
         std::queue<std::function<void()>> queue;
@@ -149,6 +148,8 @@ private:
     };
     mbgl::unordered_map<const void*, std::shared_ptr<RenderQueue>> taggedRenderQueue;
     std::mutex taggedRenderQueueLock;
+
+    mapbox::base::WeakPtrFactory<Scheduler> weakFactory{this};
 };
 
 class SequencedScheduler : public ThreadedScheduler {

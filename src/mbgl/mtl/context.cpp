@@ -38,14 +38,13 @@ namespace mtl {
 // 31 for Apple2-8, Mac2, per https://developer.apple.com/metal/Metal-Feature-Set-Tables.pdf
 constexpr uint32_t maximumVertexBindingCount = 31;
 
-Context::Context(RendererBackend& backend_, TaggedScheduler scheduler_)
+Context::Context(RendererBackend& backend_)
     : gfx::Context(mtl::maximumVertexBindingCount),
-      backend(backend_),
-      scheduler(std::move(scheduler_)) {}
+      backend(backend_) {}
 
 Context::~Context() noexcept {
     if (cleanupOnDestruction) {
-        scheduler.runRenderJobs(true /* closeQueue */);
+        backend.getThreadPool().runRenderJobs(true /* closeQueue */);
         performCleanup();
 
         emptyVertexBuffer.reset();
@@ -69,7 +68,7 @@ Context::~Context() noexcept {
 }
 
 void Context::beginFrame() {
-    scheduler.runRenderJobs();
+    backend.getThreadPool().runRenderJobs();
 }
 
 void Context::endFrame() {}

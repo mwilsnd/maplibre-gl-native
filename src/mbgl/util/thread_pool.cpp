@@ -11,9 +11,6 @@ namespace mbgl {
 ThreadedSchedulerBase::~ThreadedSchedulerBase() = default;
 
 void ThreadedSchedulerBase::terminate() {
-    // Run any leftover render jobs
-    runRenderJobs();
-
     {
         std::lock_guard<std::mutex> lock(workerMutex);
         terminated = true;

@@ -5,9 +5,9 @@
 namespace mbgl {
 namespace gfx {
 
-RendererBackend::RendererBackend(const ContextMode contextMode_, mbgl::Map* map)
+RendererBackend::RendererBackend(const ContextMode contextMode_)
     : contextMode(contextMode_),
-      owner(map) {}
+      threadPool(Scheduler::GetBackground(), static_cast<const void*>(this)) {}
 RendererBackend::~RendererBackend() = default;
 
 gfx::Context& RendererBackend::getContext() {

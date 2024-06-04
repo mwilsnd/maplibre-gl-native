@@ -30,7 +30,7 @@ class GeometryTileWorker {
 public:
     GeometryTileWorker(ActorRef<GeometryTileWorker> self,
                        ActorRef<GeometryTile> parent,
-                       TaggedScheduler& scheduler_,
+                       const TaggedScheduler& scheduler_,
                        OverscaledTileID,
                        std::string,
                        const std::atomic<bool>&,

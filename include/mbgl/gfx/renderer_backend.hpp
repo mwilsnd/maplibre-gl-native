@@ -1,5 +1,6 @@
 #pragma once
 
+#include <mbgl/actor/scheduler.hpp>
 #include <mbgl/util/util.hpp>
 
 #include <memory>
@@ -25,12 +26,15 @@ enum class ContextMode : bool {
 
 class RendererBackend {
 protected:
-    explicit RendererBackend(ContextMode, mbgl::Map*);
+    explicit RendererBackend(ContextMode);
 
 public:
     virtual ~RendererBackend();
     RendererBackend(const RendererBackend&) = delete;
     RendererBackend& operator=(const RendererBackend&) = delete;
+
+    // Return the background thread pool assigned to this backend
+    TaggedScheduler& getThreadPool() noexcept { return threadPool; }
 
     /// Returns the device's context.
     Context& getContext();
@@ -70,8 +74,8 @@ protected:
 protected:
     std::unique_ptr<Context> context;
     const ContextMode contextMode;
-    const mbgl::Map* owner;
     std::once_flag initialized;
+    TaggedScheduler threadPool;
 
     friend class BackendScope;
 };
