@@ -343,9 +343,8 @@ public class MapView extends FrameLayout implements NativeMapView.ViewCallback {
     }
 
     boolean crossSourceCollisions = maplibreMapOptions.getCrossSourceCollisions();
-    nativeMapView = new NativeMapView(
-            getContext(), getPixelRatio(), crossSourceCollisions, this, mapChangeReceiver, mapRenderer
-    );
+    nativeMapView = MapLibre.getModuleProvider().createNativeMapView(getContext(),
+      getPixelRatio(), crossSourceCollisions, this, mapChangeReceiver, mapRenderer);
   }
 
   private void onSurfaceCreated() {

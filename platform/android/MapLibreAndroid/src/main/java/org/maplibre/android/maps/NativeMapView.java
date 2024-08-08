@@ -43,7 +43,7 @@ import java.util.Arrays;
 import java.util.List;
 
 // Class that wraps the native methods for convenience
-final class NativeMapView implements NativeMap {
+public final class NativeMapView implements NativeMap {
 
   private static final String TAG = "Mbgl-NativeMapView";
 
@@ -1595,7 +1595,7 @@ final class NativeMapView implements NativeMap {
     void onDidFinishLoadingStyle();
   }
 
-  interface StateCallback extends StyleCallback {
+  public interface StateCallback extends StyleCallback {
     void onCameraWillChange(boolean animated);
 
     void onCameraIsChanging();
