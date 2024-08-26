@@ -30,6 +30,7 @@
 #include <mbgl/style/sources/image_source.hpp>
 #include <mbgl/style/sources/vector_source.hpp>
 #include <mbgl/style/style.hpp>
+#include <mbgl/style/style_impl.hpp>
 #include <mbgl/util/async_task.hpp>
 #include <mbgl/util/client_options.hpp>
 #include <mbgl/util/color.hpp>
@@ -1687,7 +1688,7 @@ TEST(Map, InvalidUTF8InTile) {
     test.runLoop.run();
 }
 
-TEST(Map, TEST_REQUIRES_SERVER(ObserveTileLifecycle)) {
+TEST(Map, ObserveTileLifecycle) {
     util::RunLoop runLoop;
 
     struct TileEntry {
@@ -1699,15 +1700,21 @@ TEST(Map, TEST_REQUIRES_SERVER(ObserveTileLifecycle)) {
             return id == other.id && sourceID == other.sourceID && op == other.op;
         }
     };
-
     std::vector<TileEntry> tileOps;
+
+    struct ShaderEntry {
+        shaders::BuiltIn id;
+        gfx::Backend::Type type;
+        bool isPostCompile;
+    };
+    std::vector<ShaderEntry> shaderOps = {};
 
     StubMapObserver observer;
     observer.onTileActionCallback = [&](TileOperation op, const OverscaledTileID& id, const std::string& sourceID) {
         if (sourceID != "mapbox") return;
         tileOps.push_back(TileEntry{id, sourceID, op});
     };
-
+    
     HeadlessFrontend frontend{{512, 512}, 1};
     MapAdapter map(
         frontend,
@@ -1717,10 +1724,17 @@ TEST(Map, TEST_REQUIRES_SERVER(ObserveTileLifecycle)) {
         MapOptions().withMapMode(MapMode::Static).withSize(frontend.getSize()));
 
     map.getStyle().loadJSON(util::read_file("test/fixtures/api/water.json"));
-    map.jumpTo(CameraOptions().withCenter(LatLng{0.0, 0.0}).withZoom(1));
+    auto layer = std::make_unique<FillLayer>("landcover", "mapbox");
+    layer->setSourceLayer("landcover");
+    layer->setFillColor(Color{0.0, 1.0, 0.0, 1.0});
+    map.getStyle().addLayer(std::move(layer));
 
-    frontend.render(map);
+    map.getStyle().loadJSON(util::read_file("test/fixtures/api/water.json"));
+    map.jumpTo(CameraOptions().withCenter(LatLng{37.8, -122.5}).withZoom(10.0));
 
+    auto img = frontend.render(map).image;
+    test::checkImage("test/fixtures/map/tile_lifecycle", img, 0.0002, 0.1);
+    
     const std::vector<OverscaledTileID> expectedTiles = {
         OverscaledTileID{0, 0, 0, 0, 0},
         OverscaledTileID{1, 0, 1, 0, 0},

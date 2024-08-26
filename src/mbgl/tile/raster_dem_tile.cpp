@@ -41,7 +41,7 @@ RasterDEMTile::~RasterDEMTile() {
 
     if (!notifiedInitiallyLoaded) {
         // This tile never finished loading or was abandoned, emit a cancellation event
-        observer->onTileAction(*this, TileOperation::Cancelled);
+        observer->onTileAction(id, sourceID, TileOperation::Cancelled);
     }
 
     // The bucket has resources that need to be released on the render thread.
@@ -71,7 +71,7 @@ void RasterDEMTile::setData(const std::shared_ptr<const std::string>& data) {
 
         if (!hasEverSetData) {
             hasEverSetData = true;
-            observer->onTileAction(*this, TileOperation::StartParse);
+            observer->onTileAction(id, sourceID, TileOperation::StartParse);
         }
 
         worker.self().invoke(&RasterDEMTileWorker::parse, data, correlationID, encoding);
@@ -90,7 +90,7 @@ void RasterDEMTile::onParsed(std::unique_ptr<HillshadeBucket> result, const uint
 
         if (!notifiedInitiallyLoaded) {
             notifiedInitiallyLoaded = true;
-            observer->onTileAction(*this, TileOperation::EndParse);
+            observer->onTileAction(id, sourceID, TileOperation::EndParse);
         }
     }
 }

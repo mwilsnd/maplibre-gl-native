@@ -30,7 +30,7 @@ RasterTile::~RasterTile() {
 
     if (!notifiedInitiallyLoaded) {
         // This tile never finished loading or was abandoned, emit a cancellation event
-        observer->onTileAction(*this, TileOperation::Cancelled);
+        observer->onTileAction(id, sourceID, TileOperation::Cancelled);
     }
 
     // The bucket has resources that need to be released on the render thread.
@@ -60,7 +60,7 @@ void RasterTile::setData(const std::shared_ptr<const std::string>& data) {
 
         if (!hasEverSetData) {
             hasEverSetData = true;
-            observer->onTileAction(*this, TileOperation::StartParse);
+            observer->onTileAction(id, sourceID, TileOperation::StartParse);
         }
 
         worker.self().invoke(&RasterTileWorker::parse, data, correlationID);
@@ -79,7 +79,7 @@ void RasterTile::onParsed(std::unique_ptr<RasterBucket> result, const uint64_t r
 
         if (!notifiedInitiallyLoaded) {
             notifiedInitiallyLoaded = true;
-            observer->onTileAction(*this, TileOperation::EndParse);
+            observer->onTileAction(id, sourceID, TileOperation::EndParse);
         }
     }
 }

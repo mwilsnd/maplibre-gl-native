@@ -199,7 +199,7 @@ GeometryTile::~GeometryTile() {
 
     if (!notifiedInitiallyLoaded) {
         // This tile never finished loading or was abandoned, emit a cancellation event
-        observer->onTileAction(*this, TileOperation::Cancelled);
+        observer->onTileAction(id, sourceID, TileOperation::Cancelled);
     }
 
     if (layoutResult) {
@@ -231,7 +231,7 @@ void GeometryTile::setData(std::unique_ptr<const GeometryTileData> data_) {
 
     if (!hasEverSetData) {
         hasEverSetData = true;
-        observer->onTileAction(*this, TileOperation::StartParse);
+        observer->onTileAction(id, sourceID, TileOperation::StartParse);
     }
 
     // Mark the tile as pending again if it was complete before to prevent
@@ -318,7 +318,7 @@ void GeometryTile::onLayout(std::shared_ptr<LayoutResult> result, const uint64_t
 
     if (!pending && !notifiedInitiallyLoaded) {
         notifiedInitiallyLoaded = true;
-        observer->onTileAction(*this, TileOperation::EndParse);
+        observer->onTileAction(id, sourceID, TileOperation::EndParse);
     }
 }
 
