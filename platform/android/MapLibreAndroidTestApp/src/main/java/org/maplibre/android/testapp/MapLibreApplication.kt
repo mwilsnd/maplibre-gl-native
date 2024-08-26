@@ -1,10 +1,10 @@
 package org.maplibre.android.testapp
 
+import android.app.Application
 import android.os.StrictMode
 import android.os.StrictMode.ThreadPolicy
 import android.os.StrictMode.VmPolicy
 import android.text.TextUtils
-import androidx.multidex.MultiDexApplication
 import org.maplibre.android.MapStrictMode
 import org.maplibre.android.MapLibre
 import org.maplibre.android.WellKnownTileServer
@@ -22,7 +22,7 @@ import timber.log.Timber.DebugTree
  * Initialises components as LeakCanary, Strictmode, Timber and MapLibre
  *
  */
-open class MapLibreApplication : MultiDexApplication() {
+open class MapLibreApplication : Application() {
     override fun onCreate() {
         super.onCreate()
         initializeLogger()

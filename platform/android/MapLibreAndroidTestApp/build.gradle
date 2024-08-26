@@ -26,7 +26,6 @@ android {
         versionCode 14
         versionName "6.0.1"
         testInstrumentationRunner "org.maplibre.android.InstrumentationRunner"
-        multiDexEnabled = true
     }
 
     nativeBuild(["example-custom-layer"])
@@ -95,8 +94,6 @@ dependencies {
     implementation libs.supportDesign
     implementation libs.supportConstraintLayout
     implementation libs.kotlinxSerializationJson
-
-    implementation libs.multidex
 
     implementation libs.timber
 
