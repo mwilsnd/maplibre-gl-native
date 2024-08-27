@@ -1700,11 +1700,13 @@ TEST(Map, ObserveTileLifecycle) {
             return id == other.id && sourceID == other.sourceID && op == other.op;
         }
     };
+    std::mutex tileMutex;
     std::vector<TileEntry> tileOps;
 
     struct ShaderEntry {
         shaders::BuiltIn id;
         gfx::Backend::Type type;
+        std::string defines;
         bool isPostCompile;
     };
     std::vector<ShaderEntry> shaderOps = {};
@@ -1712,9 +1714,16 @@ TEST(Map, ObserveTileLifecycle) {
     StubMapObserver observer;
     observer.onTileActionCallback = [&](TileOperation op, const OverscaledTileID& id, const std::string& sourceID) {
         if (sourceID != "mapbox") return;
+        std::lock_guard<std::mutex> lock(tileMutex);
         tileOps.push_back(TileEntry{id, sourceID, op});
     };
-    
+    observer.onPreCompileShaderCallback = [&](shaders::BuiltIn id, gfx::Backend::Type type, const std::string& additionalDefines) {
+        shaderOps.push_back(ShaderEntry{id, type, additionalDefines, false});
+    };
+    observer.onPostCompileShaderCallback = [&](shaders::BuiltIn id, gfx::Backend::Type type, const std::string& additionalDefines) {
+        shaderOps.push_back(ShaderEntry{id, type, additionalDefines, true});
+    };
+
     HeadlessFrontend frontend{{512, 512}, 1};
     MapAdapter map(
         frontend,
@@ -1734,62 +1743,115 @@ TEST(Map, ObserveTileLifecycle) {
 
     auto img = frontend.render(map).image;
     test::checkImage("test/fixtures/map/tile_lifecycle", img, 0.0002, 0.1);
+        
+    std::unordered_map<std::string, bool> seen;
+    for (auto& shader : shaderOps) {
+        auto shaderStr = std::to_string(static_cast<size_t>(shader.id)) + shader.defines;
+        auto it = seen.find(shaderStr);
+        if (it != seen.end()) continue;
+        seen.insert({shaderStr, true});
+        Log::Info(Event::General, std::to_string(static_cast<size_t>(shader.id)) + " " + std::to_string(std::hash<std::string>()(shader.defines)));
+    }
     
-    const std::vector<OverscaledTileID> expectedTiles = {
-        OverscaledTileID{0, 0, 0, 0, 0},
-        OverscaledTileID{1, 0, 1, 0, 0},
-        OverscaledTileID{1, 0, 1, 0, 1},
-        OverscaledTileID{1, 0, 1, 1, 0},
-        OverscaledTileID{1, 0, 1, 1, 1},
+    // We expect to see a valid shader lifecycle for every entry in this list.
+    const std::vector<std::pair<shaders::BuiltIn, size_t>> expectedShaders = {
+        {shaders::BuiltIn::FillShader, 16114602744458825542ULL},
+        {shaders::BuiltIn::FillOutlineShader, 16114602744458825542ULL},
     };
 
-    for (auto& tile : expectedTiles) {
-        TileOperation stage;
-        bool didAction = false;
+    for (const auto& [id, defineHash]  : expectedShaders) {
+        bool seenPreEvent = false;
 
-        for (auto& op : tileOps) {
+        for (const auto& op : shaderOps) {
+            if (op.id != id || std::hash<std::string>()(op.defines) != defineHash) {
+                continue;
+            }
+
+            if (!seenPreEvent) {
+                EXPECT_EQ(op.isPostCompile, false);
+                seenPreEvent = true;
+            } else {
+                EXPECT_EQ(op.isPostCompile, true);
+                break;
+            }
+        }
+    }
+
+    // We expect to see a valid lifecycle for every tile in this list.
+    const std::vector<OverscaledTileID> expectedTiles = {
+        {10, 0, 10, 163, 395 },
+        {10, 0, 10, 163, 396 },
+        {10, 0, 10, 164, 395 },
+        {10, 0, 10, 164, 396 },
+        {9, 0, 9, 81, 197 },
+        {9, 0, 9, 81, 198 },
+        {9, 0, 9, 82, 197 },
+        {9, 0, 9, 82, 198 },
+        {8, 0, 8, 40, 98 },
+        {8, 0, 8, 40, 99 },
+        {8, 0, 8, 41, 98 },
+        {8, 0, 8, 41, 99 },
+        {7, 0, 7, 20, 49 },
+        {6, 0, 6, 10, 24 },
+        {5, 0, 5, 5, 12 },
+        // Lower zooms can also be seen, but not always, so we
+        // ignore them.
+    };
+
+    for (const auto& tile : expectedTiles) {
+        TileOperation stage = TileOperation::NullOp;
+
+        for (const auto& op : tileOps) {
             if (op.id != tile) continue;
             switch (op.op) {
-                case TileOperation::Requested: {
-                    EXPECT_EQ(didAction, false);
-                    stage = TileOperation::Requested;
-                    didAction = true;
+                case TileOperation::RequestedFromCache: {
+                    EXPECT_EQ(stage, TileOperation::NullOp);
+                    stage = TileOperation::RequestedFromCache;
+                    break;
+                }
+                case TileOperation::RequestedFromNetwork: {
+                    EXPECT_THAT(stage, testing::AnyOf(
+                        TileOperation::StartParse,
+                        TileOperation::EndParse,
+                        TileOperation::RequestedFromCache
+                    ));
+                    stage = TileOperation::RequestedFromNetwork;
                     break;
                 }
                 case TileOperation::LoadFromNetwork: {
-                    EXPECT_EQ(stage, TileOperation::Requested);
+                    EXPECT_THAT(stage, TileOperation::RequestedFromNetwork);
                     stage = TileOperation::LoadFromNetwork;
-                    didAction = true;
                     break;
                 }
                 case TileOperation::LoadFromCache: {
-                    EXPECT_EQ(stage, TileOperation::Requested);
+                    EXPECT_EQ(stage, TileOperation::RequestedFromCache);
                     stage = TileOperation::LoadFromCache;
-                    didAction = true;
                     break;
                 }
                 case TileOperation::StartParse: {
                     EXPECT_THAT(stage, testing::AnyOf(TileOperation::LoadFromNetwork, TileOperation::LoadFromCache));
                     stage = TileOperation::StartParse;
-                    didAction = true;
                     break;
                 }
                 case TileOperation::Cancelled: {
                     EXPECT_THAT(stage,
-                                testing::AnyOf(TileOperation::Requested,
+                                testing::AnyOf(TileOperation::RequestedFromCache,
+                                               TileOperation::RequestedFromNetwork,
                                                TileOperation::LoadFromNetwork,
                                                TileOperation::LoadFromCache,
                                                TileOperation::StartParse));
                     stage = TileOperation::Cancelled;
-                    didAction = true;
                     break;
                 }
                 case TileOperation::EndParse: {
-                    EXPECT_EQ(stage, TileOperation::StartParse);
+                    // The tile loader will try the cache first. If a cache hit is found, it starts parsing it while loading
+                    // from the network. In the event data the cache is invalid, the network request will return newer data
+                    // and update the geometry tile worker, which was already parsing the cached data.
+                    EXPECT_THAT(stage, testing::AnyOf(TileOperation::StartParse, TileOperation::LoadFromNetwork));
                     stage = TileOperation::EndParse;
-                    didAction = true;
                     break;
                 }
+                case TileOperation::NullOp: [[fallthrough]];
                 case TileOperation::Error: {
                     ADD_FAILURE();
                     break;

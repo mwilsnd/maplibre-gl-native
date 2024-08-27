@@ -39,7 +39,7 @@ RasterDEMTile::RasterDEMTile(const OverscaledTileID& id_,
 RasterDEMTile::~RasterDEMTile() {
     markObsolete();
 
-    if (!notifiedInitiallyLoaded) {
+    if (pending) {
         // This tile never finished loading or was abandoned, emit a cancellation event
         observer->onTileAction(id, sourceID, TileOperation::Cancelled);
     }
@@ -69,8 +69,7 @@ void RasterDEMTile::setData(const std::shared_ptr<const std::string>& data) {
         pending = true;
         ++correlationID;
 
-        if (!hasEverSetData) {
-            hasEverSetData = true;
+        if (data) {
             observer->onTileAction(id, sourceID, TileOperation::StartParse);
         }
 
@@ -87,11 +86,7 @@ void RasterDEMTile::onParsed(std::unique_ptr<HillshadeBucket> result, const uint
         }
         renderable = static_cast<bool>(bucket);
         observer->onTileChanged(*this);
-
-        if (!notifiedInitiallyLoaded) {
-            notifiedInitiallyLoaded = true;
-            observer->onTileAction(id, sourceID, TileOperation::EndParse);
-        }
+        observer->onTileAction(id, sourceID, TileOperation::EndParse);
     }
 }
 
