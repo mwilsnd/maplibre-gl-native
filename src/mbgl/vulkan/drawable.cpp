@@ -253,6 +253,13 @@ void Drawable::draw(PaintParameters& parameters) const {
     if (!bindAttributes(encoder)) return;
     if (!bindDescriptors(encoder)) return;
 
+    commandBuffer->pushConstants(
+        context.getGeneralPipelineLayout().get(),
+        vk::ShaderStageFlags() | vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment,
+        0,
+        sizeof(uboIndex),
+        &uboIndex);
+
     if (is3D) {
         impl->pipelineInfo.setDepthMode(impl->depthFor3D);
         impl->pipelineInfo.setStencilMode(impl->stencilFor3D);
@@ -429,8 +436,8 @@ bool Drawable::bindDescriptors(CommandEncoder& encoder) const noexcept {
         for (const auto& texture : textures) {
             if (!texture) continue;
             const auto textureImpl = static_cast<const Texture2D*>(texture.get());
-            if (textureImpl->isDirty()) {
-                impl->imageDescriptorSet->markDirty(true);
+            if (textureImpl->isModifiedAfter(impl->imageDescriptorSet->getLastModified())) {
+                impl->imageDescriptorSet->markDirty();
                 break;
             }
         }

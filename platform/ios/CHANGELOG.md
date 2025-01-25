@@ -1,8 +1,26 @@
 # Changelog for MapLibre Native for iOS
 
-MapLibre welcomes participation and contributions from everyone. Please read [`Contributing Guide`](https://github.com/maplibre/maplibre-native/blob/master/CONTRIBUTING.md) to get started.
+MapLibre welcomes participation and contributions from everyone. Please read [`MapLibre iOS Developer Guide`](https://maplibre.org/maplibre-native/docs/book/ios/index.html) to get started.
 
-## main
+## 6.10.0
+
+- Fix icon label isn't centered with the icon for CJK/local glyphy on iOS ([#3108](https://github.com/maplibre/maplibre-native/pull/3108)).
+- Add support for [PMTiles](https://docs.protomaps.com/pmtiles/) with `pmtiles://` URL scheme ([#2882](https://github.com/maplibre/maplibre-native/pull/2882)).
+- Consolidate UBOs ([#3089](https://github.com/maplibre/maplibre-native/pull/3089)).
+- Allow constraining camera to maximum bounds ([#2475](https://github.com/maplibre/maplibre-native/pull/2475)).
+
+## 6.9.0
+
+- Batch up scheduling of deferred deletions ([#3030](https://github.com/maplibre/maplibre-native/pull/3030)).
+- Remove `Pass3D`  ([#3077](https://github.com/maplibre/maplibre-native/pull/3077)).
+- Add bold support for CJK characters ([#3069](https://github.com/maplibre/maplibre-native/pull/3069)).
+
+## 6.8.1
+
+- Update Bazel dependencies ([#3000](https://github.com/maplibre/maplibre-native/pull/3000)).
+- Reuse allocated descriptor sets ([#3002](https://github.com/maplibre/maplibre-native/pull/3002)).
+- Line SDF shader fix ([#3010](https://github.com/maplibre/maplibre-native/pull/3010)).
+- Revert "Encode the style URL in iOS. This change was causing several regressions with styles not loading ([#3024](https://github.com/maplibre/maplibre-native/pull/3024)).
 
 ## 6.8.0
 

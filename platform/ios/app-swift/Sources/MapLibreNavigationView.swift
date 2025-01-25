@@ -8,6 +8,11 @@ struct MapLibreNavigationView: View {
                 NavigationLink("SimpleMap") {
                     SimpleMap().edgesIgnoringSafeArea(.all)
                 }
+                #if MLN_RENDER_BACKEND_METAL
+                    NavigationLink("CustomStyleLayer (Metal)") {
+                        CustomStyleLayerExample().edgesIgnoringSafeArea(.all)
+                    }
+                #endif
                 NavigationLink("LineTapMap") {
                     LineTapMap().edgesIgnoringSafeArea(.all)
                 }
@@ -16,6 +21,9 @@ struct MapLibreNavigationView: View {
                 }
                 NavigationLink("BlockingGesturesExample") {
                     BlockingGesturesExample()
+                }
+                NavigationLink("MaximumScreenBoundsExample") {
+                    MaximumScreenBoundsExample()
                 }
                 NavigationLink("LineStyleLayerExample") {
                     LineStyleLayerExampleUIViewControllerRepresentable()

@@ -226,9 +226,8 @@ BOOL isValidMapboxEndpoint(NSURL *url) {
 MLN_APPLE_EXPORT
 NSURL *resourceURL(const Resource& resource) {
     
-    NSString *encodedUrlString = [@(resource.url.c_str()) stringByAddingPercentEncodingWithAllowedCharacters:NSCharacterSet.URLQueryAllowedCharacterSet];
-    NSURL *url = [NSURL URLWithString:encodedUrlString];
-    
+    NSURL *url = [NSURL URLWithString:@(resource.url.c_str())];
+
 #if TARGET_OS_IPHONE || TARGET_OS_SIMULATOR
     if (isValidMapboxEndpoint(url)) {
         NSURLComponents *components = [NSURLComponents componentsWithURL:url resolvingAgainstBaseURL:NO];
@@ -264,6 +263,13 @@ std::unique_ptr<AsyncRequest> HTTPFileSource::request(const Resource& resource, 
         } else if (resource.priorModified) {
             [req addValue:@(util::rfc1123(*resource.priorModified).c_str())
                  forHTTPHeaderField:@"If-Modified-Since"];
+        }
+        
+        if (resource.dataRange) {
+            NSString *rangeHeader = [NSString stringWithFormat:@"bytes=%lld-%lld",
+                                     static_cast<long long>(resource.dataRange->first),
+                                     static_cast<long long>(resource.dataRange->second)];
+            [req setValue:rangeHeader forHTTPHeaderField:@"Range"];
         }
 
         [req addValue:impl->userAgent forHTTPHeaderField:@"User-Agent"];
@@ -361,7 +367,7 @@ std::unique_ptr<AsyncRequest> HTTPFileSource::request(const Resource& resource, 
                         response.etag = std::string([etag UTF8String]);
                     }
 
-                    if (responseCode == 200) {
+                    if (responseCode == 200 || responseCode == 206) {
                         response.data = std::make_shared<std::string>((const char *)[data bytes], [data length]);
                     } else if (responseCode == 204 || (responseCode == 404 && isTile)) {
                         response.noContent = true;
