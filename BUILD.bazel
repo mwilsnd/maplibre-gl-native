@@ -79,6 +79,13 @@ cc_library(
         ":legacy_renderer": MLN_OPENGL_SOURCE,
         ":metal_renderer": MLN_DRAWABLES_SOURCE + MLN_DRAWABLES_MTL_SOURCE,
         "//conditions:default": [],
+    }) + select({
+        "//:rust": [
+            "src/mbgl/util/color.rs.cpp",
+        ],
+        "//conditions:default": [
+            "src/mbgl/util/color.cpp",
+        ],
     }),
     hdrs = MLN_CORE_HEADERS + select({
         ":drawable_renderer": MLN_OPENGL_HEADERS + MLN_DRAWABLES_HEADERS + MLN_DRAWABLES_GL_HEADERS,

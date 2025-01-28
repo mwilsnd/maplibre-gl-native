@@ -651,14 +651,7 @@ MLN_CORE_SOURCE = [
     "src/mbgl/util/version.cpp",
     "src/mbgl/util/version.hpp",
     "src/mbgl/util/work_request.cpp",
-] + select({
-    "//:rust": [
-        "src/mbgl/util/color.rs.cpp",
-    ],
-    "//conditions:default": [
-        "src/mbgl/util/color.cpp",
-    ],
-})
+]
 
 MLN_CORE_HEADERS = [
     "include/mbgl/gfx/context.hpp",
