@@ -29,6 +29,8 @@ public:
     void loadJSON(const std::string&);
     void loadURL(const std::string&);
 
+    bool isLoaded() const;
+
     std::string getJSON() const;
     std::string getURL() const;
 

@@ -27,6 +27,10 @@ void Style::loadURL(const std::string& url) {
     impl->loadURL(url);
 }
 
+bool Style::isLoaded() const {
+    return impl->isLoaded();
+}
+
 std::string Style::getJSON() const {
     MLN_TRACE_FUNC();
 

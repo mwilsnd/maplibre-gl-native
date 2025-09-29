@@ -16,6 +16,7 @@ option(MLN_WITH_PMTILES "Build with PMTiles support" ON)
 option(MLN_WITH_WERROR "Make all compilation warnings errors" ON)
 option(MLN_USE_UNORDERED_DENSE "Use ankerl dense containers for performance" ON)
 option(MLN_USE_TRACY "Enable Tracy instrumentation" OFF)
+option(MLN_TRACY_NO_GPU_PROFILING "Disable Tracy GPU instrumentation" OFF)
 option(MLN_USE_RUST "Use components in Rust" OFF)
 option(MLN_TEXT_SHAPING_HARFBUZZ "Use haffbuzz to shape complex text" ON)
 option(MLN_CORE_INCLUDE_DEPS "Include depdendencies in static build of core" OFF)
@@ -399,6 +400,7 @@ list(APPEND INCLUDE_FILES
     ${PROJECT_SOURCE_DIR}/include/mbgl/util/containers.hpp
     ${PROJECT_SOURCE_DIR}/include/mbgl/util/convert.hpp
     ${PROJECT_SOURCE_DIR}/include/mbgl/util/default_style.hpp
+    ${PROJECT_SOURCE_DIR}/include/mbgl/util/tile_range.hpp
     ${PROJECT_SOURCE_DIR}/include/mbgl/util/enum.hpp
     ${PROJECT_SOURCE_DIR}/include/mbgl/util/event.hpp
     ${PROJECT_SOURCE_DIR}/include/mbgl/util/exception.hpp
@@ -431,6 +433,8 @@ list(APPEND INCLUDE_FILES
     ${PROJECT_SOURCE_DIR}/include/mbgl/util/string_indexer.hpp
     ${PROJECT_SOURCE_DIR}/include/mbgl/util/string.hpp
     ${PROJECT_SOURCE_DIR}/include/mbgl/util/thread.hpp
+    ${PROJECT_SOURCE_DIR}/include/mbgl/util/thread_pool.hpp
+    ${PROJECT_SOURCE_DIR}/include/mbgl/util/thread_local.hpp
     ${PROJECT_SOURCE_DIR}/include/mbgl/util/tile_server_options.hpp
     ${PROJECT_SOURCE_DIR}/include/mbgl/util/tileset.hpp
     ${PROJECT_SOURCE_DIR}/include/mbgl/util/timer.hpp
@@ -935,15 +939,12 @@ list(APPEND SRC_FILES
     ${PROJECT_SOURCE_DIR}/src/mbgl/util/string.cpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/util/string_indexer.cpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/util/thread.cpp
-    ${PROJECT_SOURCE_DIR}/src/mbgl/util/thread_local.hpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/util/thread_pool.cpp
-    ${PROJECT_SOURCE_DIR}/src/mbgl/util/thread_pool.hpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/util/tile_coordinate.hpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/util/tile_cover.cpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/util/tile_cover.hpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/util/tile_cover_impl.cpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/util/tile_cover_impl.hpp
-    ${PROJECT_SOURCE_DIR}/src/mbgl/util/tile_range.hpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/util/default_style.cpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/util/tile_server_options.cpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/util/tiny_sdf.cpp
@@ -977,6 +978,7 @@ if(MLN_WITH_OPENGL)
         PUBLIC
             MLN_RENDER_BACKEND_OPENGL=1
             "MLN_USE_UNORDERED_DENSE=$<BOOL:${MLN_USE_UNORDERED_DENSE}>"
+            "MLN_TRACY_NO_GPU_PROFILING=$<BOOL:${MLN_TRACY_NO_GPU_PROFILING}>"
     )
     list(APPEND
         INCLUDE_FILES
@@ -1034,7 +1036,6 @@ if(MLN_WITH_OPENGL)
             ${PROJECT_SOURCE_DIR}/src/mbgl/gl/draw_scope_resource.hpp
             ${PROJECT_SOURCE_DIR}/src/mbgl/gl/enum.cpp
             ${PROJECT_SOURCE_DIR}/src/mbgl/gl/enum.hpp
-            ${PROJECT_SOURCE_DIR}/src/mbgl/gl/extension.hpp
             ${PROJECT_SOURCE_DIR}/src/mbgl/gl/framebuffer.hpp
             ${PROJECT_SOURCE_DIR}/src/mbgl/gl/index_buffer_resource.cpp
             ${PROJECT_SOURCE_DIR}/src/mbgl/gl/index_buffer_resource.hpp
@@ -1051,7 +1052,6 @@ if(MLN_WITH_OPENGL)
             ${PROJECT_SOURCE_DIR}/src/mbgl/gl/resource_pool.hpp
             ${PROJECT_SOURCE_DIR}/src/mbgl/gl/state.hpp
             ${PROJECT_SOURCE_DIR}/src/mbgl/gl/timestamp_query_extension.cpp
-            ${PROJECT_SOURCE_DIR}/src/mbgl/gl/timestamp_query_extension.hpp
             ${PROJECT_SOURCE_DIR}/src/mbgl/gl/types.hpp
             ${PROJECT_SOURCE_DIR}/src/mbgl/gl/uniform.cpp
             ${PROJECT_SOURCE_DIR}/src/mbgl/gl/uniform.hpp
@@ -1096,10 +1096,12 @@ if(MLN_WITH_OPENGL)
         ${PROJECT_SOURCE_DIR}/include/mbgl/gl/buffer_allocator.hpp
         ${PROJECT_SOURCE_DIR}/include/mbgl/gl/drawable_gl.hpp
         ${PROJECT_SOURCE_DIR}/include/mbgl/gl/drawable_gl_builder.hpp
+        ${PROJECT_SOURCE_DIR}/include/mbgl/gl/extension.hpp
         ${PROJECT_SOURCE_DIR}/include/mbgl/gl/layer_group_gl.hpp
         ${PROJECT_SOURCE_DIR}/include/mbgl/gl/uniform_buffer_gl.hpp
         ${PROJECT_SOURCE_DIR}/include/mbgl/gl/vertex_attribute_gl.hpp
         ${PROJECT_SOURCE_DIR}/include/mbgl/gl/texture2d.hpp
+        ${PROJECT_SOURCE_DIR}/include/mbgl/gl/timestamp_query_extension.hpp
     )
     list(APPEND SRC_FILES
         ${PROJECT_SOURCE_DIR}/src/mbgl/shaders/gl/shader_info.cpp

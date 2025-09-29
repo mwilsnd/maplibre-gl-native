@@ -55,7 +55,7 @@ constexpr const char* tracyConstMemoryLabel = "Constant Buffer Memory";
 
 // Only OpenGL is currently considered for GPU profiling
 // Metal and other APIs need to be handled separately
-#if MLN_RENDER_BACKEND_OPENGL
+#if MLN_RENDER_BACKEND_OPENGL && !defined(MLN_TRACY_NO_GPU_PROFILING)
 
 #include <mbgl/gl/timestamp_query_extension.hpp>
 

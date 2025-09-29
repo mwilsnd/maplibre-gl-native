@@ -283,6 +283,20 @@ target_link_libraries(
     PRIVATE mbgl-compiler-options mbgl-render-test
 )
 
+add_executable(
+    mbgl-parallel-render-test
+    ${PROJECT_SOURCE_DIR}/platform/linux/src/test/parallel_test.cpp
+)
+
+target_link_libraries(
+    mbgl-parallel-render-test
+    PRIVATE
+        MapLibreNative::Base::pixelmatch-cpp
+        mbgl-compiler-options
+        mbgl-vendor-boost
+        mbgl-core
+)
+
 # Disable benchmarks in CI as they run in VM environment
 if(NOT DEFINED ENV{CI})
     add_test(NAME mbgl-benchmark-runner COMMAND mbgl-benchmark-runner WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
